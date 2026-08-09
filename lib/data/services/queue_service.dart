@@ -1,17 +1,71 @@
 import '../models/song.dart';
 
 class QueueService {
+  // ===========================================================================
+  // QUEUE
+  // ===========================================================================
+
   final List<Song> _queue = [];
 
   int _currentIndex = -1;
 
+  // ===========================================================================
+  // FULL QUEUE
+  // ===========================================================================
+
   List<Song> get queue {
-    return List.unmodifiable(_queue);
+    return List.unmodifiable(
+      _queue,
+    );
   }
+
+  // ===========================================================================
+  // UPCOMING QUEUE
+  // ===========================================================================
+  //
+  // Returns ONLY songs after the currently playing song.
+  //
+  // Example:
+  //
+  // A → B → C → D
+  //         ↑
+  //       CURRENT
+  //
+  // upcoming = C? No:
+  //
+  // D only.
+  //
+  // Previous songs are never included.
+  //
+
+  List<Song> get upcoming {
+    if (_queue.isEmpty) {
+      return const [];
+    }
+
+    if (_currentIndex < 0 ||
+        _currentIndex >= _queue.length - 1) {
+      return const [];
+    }
+
+    return List.unmodifiable(
+      _queue.sublist(
+        _currentIndex + 1,
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // CURRENT INDEX
+  // ===========================================================================
 
   int get currentIndex {
     return _currentIndex;
   }
+
+  // ===========================================================================
+  // CURRENT SONG
+  // ===========================================================================
 
   Song? get currentSong {
     if (_currentIndex < 0 ||
@@ -22,14 +76,26 @@ class QueueService {
     return _queue[_currentIndex];
   }
 
+  // ===========================================================================
+  // HAS NEXT
+  // ===========================================================================
+
   bool get hasNext {
     return _currentIndex >= 0 &&
         _currentIndex < _queue.length - 1;
   }
 
+  // ===========================================================================
+  // HAS PREVIOUS
+  // ===========================================================================
+
   bool get hasPrevious {
     return _currentIndex > 0;
   }
+
+  // ===========================================================================
+  // SET QUEUE
+  // ===========================================================================
 
   void setQueue(
       List<Song> songs, {
@@ -50,9 +116,17 @@ class QueueService {
     );
   }
 
-  void add(Song song) {
-    final alreadyExists = _queue.any(
-          (item) => item.id == song.id,
+  // ===========================================================================
+  // ADD SONG
+  // ===========================================================================
+
+  void add(
+      Song song,
+      ) {
+    final alreadyExists =
+    _queue.any(
+          (item) =>
+      item.id == song.id,
     );
 
     if (alreadyExists) {
@@ -66,11 +140,21 @@ class QueueService {
     }
   }
 
-  void addAll(List<Song> songs) {
+  // ===========================================================================
+  // ADD MULTIPLE
+  // ===========================================================================
+
+  void addAll(
+      List<Song> songs,
+      ) {
     for (final song in songs) {
       add(song);
     }
   }
+
+  // ===========================================================================
+  // NEXT
+  // ===========================================================================
 
   Song? next() {
     if (!hasNext) {
@@ -82,6 +166,10 @@ class QueueService {
     return currentSong;
   }
 
+  // ===========================================================================
+  // PREVIOUS
+  // ===========================================================================
+
   Song? previous() {
     if (!hasPrevious) {
       return null;
@@ -92,16 +180,29 @@ class QueueService {
     return currentSong;
   }
 
-  void replaceCurrent(Song song) {
+  // ===========================================================================
+  // REPLACE CURRENT
+  // ===========================================================================
+
+  void replaceCurrent(
+      Song song,
+      ) {
     if (_currentIndex < 0 ||
         _currentIndex >= _queue.length) {
       return;
     }
 
-    _queue[_currentIndex] = song;
+    _queue[_currentIndex] =
+        song;
   }
 
-  void removeAt(int index) {
+  // ===========================================================================
+  // REMOVE
+  // ===========================================================================
+
+  void removeAt(
+      int index,
+      ) {
     if (index < 0 ||
         index >= _queue.length) {
       return;
@@ -118,10 +219,16 @@ class QueueService {
       _currentIndex--;
     }
 
-    if (_currentIndex >= _queue.length) {
-      _currentIndex = _queue.length - 1;
+    if (_currentIndex >=
+        _queue.length) {
+      _currentIndex =
+          _queue.length - 1;
     }
   }
+
+  // ===========================================================================
+  // CLEAR
+  // ===========================================================================
 
   void clear() {
     _queue.clear();

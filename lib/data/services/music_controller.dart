@@ -6,6 +6,7 @@ import 'package:just_audio/just_audio.dart';
 import '../models/playback_state.dart';
 import '../models/playlist.dart';
 import '../models/song.dart';
+import 'audio_handler.dart';
 import 'audio_player_service.dart';
 import 'library_service.dart';
 import 'playlist_service.dart';
@@ -22,6 +23,7 @@ class MusicController extends ChangeNotifier {
   final QueueService _queueService;
   final LibraryService _libraryService;
   final PlaylistService _playlistService;
+  ChameleonAudioHandler? _audioHandler;
 
   // ===========================================================================
   // CONSTRUCTOR
@@ -33,16 +35,11 @@ class MusicController extends ChangeNotifier {
     QueueService? queueService,
     LibraryService? libraryService,
     PlaylistService? playlistService,
-  })  : _youtubeService =
-      youtubeService ?? YoutubeService(),
-        _audioPlayerService =
-            audioPlayerService ?? AudioPlayerService(),
-        _queueService =
-            queueService ?? QueueService(),
-        _libraryService =
-            libraryService ?? LibraryService(),
-        _playlistService =
-            playlistService ?? PlaylistService() {
+  }) : _youtubeService = youtubeService ?? YoutubeService(),
+       _audioPlayerService = audioPlayerService ?? AudioPlayerService(),
+       _queueService = queueService ?? QueueService(),
+       _libraryService = libraryService ?? LibraryService(),
+       _playlistService = playlistService ?? PlaylistService() {
     _bindPlayerStreams();
   }
 
@@ -50,8 +47,7 @@ class MusicController extends ChangeNotifier {
   // PLAYBACK
   // ===========================================================================
 
-  PlaybackState _playbackState =
-  const PlaybackState();
+  PlaybackState _playbackState = const PlaybackState();
 
   // ===========================================================================
   // SEARCH
@@ -86,6 +82,40 @@ class MusicController extends ChangeNotifier {
   bool _isInitializing = false;
 
   String? _errorMessage;
+
+  // ===========================================================================
+  // PLAY REQUEST CONTROL
+  // ===========================================================================
+  //
+  // Every tap gets a new request id. If a previous song is still resolving,
+  // it cannot start after a newer song has been selected.
+  //
+
+  int _playRequestId = 0;
+
+  // ===========================================================================
+  // TEMPORARY STREAM CACHE
+  // ===========================================================================
+  //
+  // Stream URLs are temporary playback resources. They are kept in memory
+  // only and are never persisted.
+  //
+
+  final Map<String, _CachedStream> _resolvedSongs = {};
+
+  // ===========================================================================
+  // STREAM PRELOAD TASKS
+  // ===========================================================================
+  //
+  // Prevent duplicate network requests when a song is being preloaded and the
+  // user taps that same song at the same time.
+  //
+
+  final Map<String, Future<Song>> _preloadTasks = {};
+
+  static const Duration _streamCacheDuration = Duration(minutes: 5);
+
+  static const int _defaultPreloadCount = 3;
 
   // ===========================================================================
   // PLAYER STREAMS
@@ -124,27 +154,23 @@ class MusicController extends ChangeNotifier {
   }
 
   List<Song> get queue {
-    return List.unmodifiable(
-      _queueService.queue,
-    );
+    return List.unmodifiable(_queueService.queue);
+  }
+
+  List<Song> get upcomingQueue {
+    return _queueService.upcoming;
   }
 
   List<Song> get favorites {
-    return List.unmodifiable(
-      _libraryService.favorites,
-    );
+    return List.unmodifiable(_libraryService.favorites);
   }
 
   List<Song> get recentlyPlayed {
-    return List.unmodifiable(
-      _libraryService.recentlyPlayed,
-    );
+    return List.unmodifiable(_libraryService.recentlyPlayed);
   }
 
   List<Playlist> get playlists {
-    return List.unmodifiable(
-      _playlistService.playlists,
-    );
+    return List.unmodifiable(_playlistService.playlists);
   }
 
   Song? get currentSong {
@@ -180,14 +206,29 @@ class MusicController extends ChangeNotifier {
   }
 
   bool isFavorite(Song song) {
-    return _libraryService.isFavorite(
-      song.id,
-    );
+    return _libraryService.isFavorite(song.id);
   }
 
   // ===========================================================================
   // INITIALIZATION
   // ===========================================================================
+
+
+
+  void attachAudioHandler(
+      ChameleonAudioHandler handler,
+      ) {
+    _audioHandler = handler;
+
+    handler.onNext = next;
+    handler.onPrevious = previous;
+
+    final current = currentSong;
+
+    if (current != null) {
+      handler.updateSong(current);
+    }
+  }
 
   Future<void> initialize() async {
     if (_isInitialized) {
@@ -226,25 +267,20 @@ class MusicController extends ChangeNotifier {
   // ===========================================================================
 
   Future<void> refreshHome() async {
-    final runningOperation =
-        _homeRefreshOperation;
+    final runningOperation = _homeRefreshOperation;
 
     if (runningOperation != null) {
       return runningOperation;
     }
 
-    final operation =
-    _performHomeRefresh();
+    final operation = _performHomeRefresh();
 
     _homeRefreshOperation = operation;
 
     try {
       await operation;
     } finally {
-      if (identical(
-        _homeRefreshOperation,
-        operation,
-      )) {
+      if (identical(_homeRefreshOperation, operation)) {
         _homeRefreshOperation = null;
       }
     }
@@ -273,11 +309,7 @@ class MusicController extends ChangeNotifier {
 
       for (final query in queries) {
         try {
-          final results =
-          await _youtubeService.search(
-            query,
-            limit: 20,
-          );
+          final results = await _youtubeService.search(query, limit: 20);
 
           batches.add(results);
         } catch (_) {
@@ -314,8 +346,7 @@ class MusicController extends ChangeNotifier {
       // TRENDING
       // -----------------------------------------------------------------------
 
-      _trendingSongs =
-          songs.take(40).toList();
+      _trendingSongs = songs.take(40).toList();
 
       // -----------------------------------------------------------------------
       // ARTISTS
@@ -326,15 +357,13 @@ class MusicController extends ChangeNotifier {
       final seenArtists = <String>{};
 
       for (final song in _trendingSongs) {
-        final artist =
-        song.artist.trim();
+        final artist = song.artist.trim();
 
         if (artist.isEmpty) {
           continue;
         }
 
-        final key =
-        artist.toLowerCase();
+        final key = artist.toLowerCase();
 
         if (!seenArtists.add(key)) {
           continue;
@@ -353,15 +382,17 @@ class MusicController extends ChangeNotifier {
       // SUGGESTIONS
       // -----------------------------------------------------------------------
 
-      await _loadSuggestedSongs(
-        _trendingSongs,
-      );
+      await _loadSuggestedSongs(_trendingSongs);
 
-      _homeLastUpdated =
-          DateTime.now();
+      _homeLastUpdated = DateTime.now();
+
+      // Pre-resolve a few songs in the background.
+      // This must never delay Home becoming usable.
+      unawaited(preloadSongs(_trendingSongs, count: _defaultPreloadCount));
+
+      unawaited(preloadSongs(_suggestedSongs, count: _defaultPreloadCount));
     } catch (error) {
-      _errorMessage =
-          error.toString();
+      _errorMessage = error.toString();
     } finally {
       _isHomeLoading = false;
 
@@ -373,26 +404,19 @@ class MusicController extends ChangeNotifier {
   // REMOVE DUPLICATE TITLES
   // ===========================================================================
 
-  List<Song> _removeDuplicateTitles(
-      List<Song> songs,
-      ) {
+  List<Song> _removeDuplicateTitles(List<Song> songs) {
     final result = <Song>[];
 
     final seenTitles = <String>{};
 
     for (final song in songs) {
-      final normalizedTitle =
-      _normalizeTitle(
-        song.title,
-      );
+      final normalizedTitle = _normalizeTitle(song.title);
 
       if (normalizedTitle.isEmpty) {
         continue;
       }
 
-      if (!seenTitles.add(
-        normalizedTitle,
-      )) {
+      if (!seenTitles.add(normalizedTitle)) {
         continue;
       }
 
@@ -406,41 +430,14 @@ class MusicController extends ChangeNotifier {
   // NORMALIZE TITLE
   // ===========================================================================
 
-  String _normalizeTitle(
-      String value,
-      ) {
+  String _normalizeTitle(String value) {
     return value
         .toLowerCase()
-        .replaceAll(
-      RegExp(
-        r'\(official.*?\)',
-      ),
-      '',
-    )
-        .replaceAll(
-      RegExp(
-        r'\[official.*?\]',
-      ),
-      '',
-    )
-        .replaceAll(
-      RegExp(
-        r'\(lyrics?.*?\)',
-      ),
-      '',
-    )
-        .replaceAll(
-      RegExp(
-        r'\[lyrics?.*?\]',
-      ),
-      '',
-    )
-        .replaceAll(
-      RegExp(
-        r'\s+',
-      ),
-      ' ',
-    )
+        .replaceAll(RegExp(r'\(official.*?\)'), '')
+        .replaceAll(RegExp(r'\[official.*?\]'), '')
+        .replaceAll(RegExp(r'\(lyrics?.*?\)'), '')
+        .replaceAll(RegExp(r'\[lyrics?.*?\]'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
   }
 
@@ -448,23 +445,19 @@ class MusicController extends ChangeNotifier {
   // ARTIST EXTRACTION
   // ===========================================================================
 
-  List<String> _extractArtists(
-      List<Song> songs,
-      ) {
+  List<String> _extractArtists(List<Song> songs) {
     final artists = <String>[];
 
     final seen = <String>{};
 
     for (final song in songs) {
-      final artist =
-      song.artist.trim();
+      final artist = song.artist.trim();
 
       if (artist.isEmpty) {
         continue;
       }
 
-      final key =
-      artist.toLowerCase();
+      final key = artist.toLowerCase();
 
       if (!seen.add(key)) {
         continue;
@@ -484,9 +477,7 @@ class MusicController extends ChangeNotifier {
   // SUGGESTIONS
   // ===========================================================================
 
-  Future<void> _loadSuggestedSongs(
-      List<Song> trending,
-      ) async {
+  Future<void> _loadSuggestedSongs(List<Song> trending) async {
     if (trending.isEmpty) {
       _suggestedSongs = [];
       return;
@@ -496,49 +487,33 @@ class MusicController extends ChangeNotifier {
 
     final seenIds = <String>{};
 
-    final trendingIds = trending
-        .map(
-          (song) => song.id,
-    )
-        .toSet();
+    final trendingIds = trending.map((song) => song.id).toSet();
 
     // -------------------------------------------------------------------------
     // SEARCH MULTIPLE TRENDING ARTISTS
     // -------------------------------------------------------------------------
 
-    final artists =
-    _extractArtists(
-      trending,
-    ).take(8).toList();
+    final artists = _extractArtists(trending).take(8).toList();
 
     if (artists.isNotEmpty) {
-      final artistBatches =
-      await Future.wait(
+      final artistBatches = await Future.wait(
         artists.map(
-              (artist) =>
-              _youtubeService.search(
-                '$artist official songs',
-                limit: 12,
-              ),
+          (artist) =>
+              _youtubeService.search('$artist official songs', limit: 12),
         ),
       );
 
-      for (final batch
-      in artistBatches) {
+      for (final batch in artistBatches) {
         for (final song in batch) {
           if (song.id.isEmpty) {
             continue;
           }
 
-          if (trendingIds.contains(
-            song.id,
-          )) {
+          if (trendingIds.contains(song.id)) {
             continue;
           }
 
-          if (!seenIds.add(
-            song.id,
-          )) {
+          if (!seenIds.add(song.id)) {
             continue;
           }
 
@@ -560,11 +535,8 @@ class MusicController extends ChangeNotifier {
     // -------------------------------------------------------------------------
 
     if (suggestions.length < 24) {
-      for (final song
-      in trending.skip(10)) {
-        if (seenIds.add(
-          song.id,
-        )) {
+      for (final song in trending.skip(10)) {
+        if (seenIds.add(song.id)) {
           suggestions.add(song);
         }
 
@@ -578,20 +550,13 @@ class MusicController extends ChangeNotifier {
     // DON'T RECOMMEND CURRENT SONG
     // -------------------------------------------------------------------------
 
-    final currentId =
-        currentSong?.id;
+    final currentId = currentSong?.id;
 
     if (currentId != null) {
-      suggestions.removeWhere(
-            (song) =>
-        song.id == currentId,
-      );
+      suggestions.removeWhere((song) => song.id == currentId);
     }
 
-    _suggestedSongs =
-        _removeDuplicateTitles(
-          suggestions,
-        ).take(30).toList();
+    _suggestedSongs = _removeDuplicateTitles(suggestions).take(30).toList();
   }
 
   // ===========================================================================
@@ -611,8 +576,7 @@ class MusicController extends ChangeNotifier {
 
       notifyListeners();
     } catch (error) {
-      _errorMessage =
-          error.toString();
+      _errorMessage = error.toString();
 
       notifyListeners();
     }
@@ -623,85 +587,56 @@ class MusicController extends ChangeNotifier {
   // ===========================================================================
 
   void _bindPlayerStreams() {
-    _playingSubscription =
-        _audioPlayerService
-            .playingStream
-            .listen(
-              (isPlaying) {
-            _updatePlayback(
-              isPlaying: isPlaying,
-              status: isPlaying
-                  ? PlaybackStatus.playing
-                  : PlaybackStatus.paused,
-            );
-          },
-        );
+    _playingSubscription = _audioPlayerService.playingStream.listen((
+      isPlaying,
+    ) {
+      _updatePlayback(
+        isPlaying: isPlaying,
+        status: isPlaying ? PlaybackStatus.playing : PlaybackStatus.paused,
+      );
+    });
 
-    _positionSubscription =
-        _audioPlayerService
-            .positionStream
-            .listen(
-              (position) {
-            _updatePlayback(
-              position: position,
-            );
-          },
-        );
+    _positionSubscription = _audioPlayerService.positionStream.listen((
+      position,
+    ) {
+      _updatePlayback(position: position);
+    });
 
-    _durationSubscription =
-        _audioPlayerService
-            .durationStream
-            .listen(
-              (duration) {
-            _updatePlayback(
-              duration:
-              duration ?? Duration.zero,
-            );
-          },
-        );
+    _durationSubscription = _audioPlayerService.durationStream.listen((
+      duration,
+    ) {
+      _updatePlayback(duration: duration ?? Duration.zero);
+    });
 
-    _playerStateSubscription =
-        _audioPlayerService
-            .playerStateStream
-            .listen(
-              (state) {
-            switch (
-            state.processingState) {
-              case ProcessingState.idle:
-                _updatePlayback(
-                  status:
-                  PlaybackStatus.idle,
-                );
-                break;
+    _playerStateSubscription = _audioPlayerService.playerStateStream.listen((
+      state,
+    ) {
+      switch (state.processingState) {
+        case ProcessingState.idle:
+          _updatePlayback(status: PlaybackStatus.idle);
+          break;
 
-              case ProcessingState.loading:
-                _updatePlayback(
-                  status:
-                  PlaybackStatus.loading,
-                );
-                break;
+        case ProcessingState.loading:
+          _updatePlayback(status: PlaybackStatus.loading);
+          break;
 
-              case ProcessingState.buffering:
-                _updatePlayback(
-                  status:
-                  PlaybackStatus.buffering,
-                );
-                break;
+        case ProcessingState.buffering:
+          _updatePlayback(status: PlaybackStatus.buffering);
+          break;
 
-              case ProcessingState.ready:
-                _updatePlayback(
-                  status: state.playing
-                      ? PlaybackStatus.playing
-                      : PlaybackStatus.paused,
-                );
-                break;
+        case ProcessingState.ready:
+          _updatePlayback(
+            status: state.playing
+                ? PlaybackStatus.playing
+                : PlaybackStatus.paused,
+          );
+          break;
 
-              case ProcessingState.completed:
-                _handleTrackCompleted();
-                break;
-            }
-          },
-        );
+        case ProcessingState.completed:
+          _handleTrackCompleted();
+          break;
+      }
+    });
   }
 
   // ===========================================================================
@@ -709,11 +644,7 @@ class MusicController extends ChangeNotifier {
   // ===========================================================================
 
   Future<void> _handleTrackCompleted() async {
-    _updatePlayback(
-      status:
-      PlaybackStatus.completed,
-      isPlaying: false,
-    );
+    _updatePlayback(status: PlaybackStatus.completed, isPlaying: false);
 
     if (!hasNext) {
       return;
@@ -722,14 +653,9 @@ class MusicController extends ChangeNotifier {
     try {
       await next();
     } catch (error) {
-      _errorMessage =
-          error.toString();
+      _errorMessage = error.toString();
 
-      _updatePlayback(
-        status:
-        PlaybackStatus.error,
-        isPlaying: false,
-      );
+      _updatePlayback(status: PlaybackStatus.error, isPlaying: false);
     }
   }
 
@@ -744,14 +670,13 @@ class MusicController extends ChangeNotifier {
     bool? isPlaying,
     Song? currentSong,
   }) {
-    _playbackState =
-        _playbackState.copyWith(
-          status: status,
-          position: position,
-          duration: duration,
-          isPlaying: isPlaying,
-          currentSong: currentSong,
-        );
+    _playbackState = _playbackState.copyWith(
+      status: status,
+      position: position,
+      duration: duration,
+      isPlaying: isPlaying,
+      currentSong: currentSong,
+    );
 
     notifyListeners();
   }
@@ -760,11 +685,8 @@ class MusicController extends ChangeNotifier {
   // SEARCH
   // ===========================================================================
 
-  Future<void> search(
-      String query,
-      ) async {
-    final trimmedQuery =
-    query.trim();
+  Future<void> search(String query) async {
+    final trimmedQuery = query.trim();
 
     if (trimmedQuery.isEmpty) {
       _searchResults = [];
@@ -781,18 +703,16 @@ class MusicController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final results =
-      await _youtubeService.search(
-        trimmedQuery,
-        limit: 40,
-      );
+      final results = await _youtubeService.search(trimmedQuery, limit: 40);
 
-      _searchResults =
-          _deduplicate(results);
+      _searchResults = _deduplicate(results);
+
+      // Start resolving the first few results in the background.
+      // The search screen does not wait for this.
+      unawaited(preloadSongs(_searchResults, count: _defaultPreloadCount));
     } catch (error) {
       _searchResults = [];
-      _errorMessage =
-          error.toString();
+      _errorMessage = error.toString();
     } finally {
       _isSearching = false;
 
@@ -815,16 +735,13 @@ class MusicController extends ChangeNotifier {
   // DEDUPLICATE
   // ===========================================================================
 
-  List<Song> _deduplicate(
-      List<Song> songs,
-      ) {
+  List<Song> _deduplicate(List<Song> songs) {
     final result = <Song>[];
 
     final ids = <String>{};
 
     for (final song in songs) {
-      final id =
-      song.id.trim();
+      final id = song.id.trim();
 
       if (id.isEmpty) {
         continue;
@@ -844,18 +761,167 @@ class MusicController extends ChangeNotifier {
   // RESOLVE STREAM
   // ===========================================================================
 
-  Future<Song> resolveSong(
-      Song song,
-      ) async {
-    final streamUrl =
-    await _youtubeService
-        .getAudioStreamUrl(
-      song.id,
-    );
+  Future<Song> resolveSong(Song song) async {
+    // -------------------------------------------------------------------------
+    // SONG ALREADY CONTAINS A PLAYABLE STREAM
+    // -------------------------------------------------------------------------
 
-    return song.copyWith(
-      streamUrl: streamUrl,
+    final existingUrl = song.streamUrl?.trim();
+
+    if (existingUrl != null && existingUrl.isNotEmpty) {
+      return song;
+    }
+
+    // -------------------------------------------------------------------------
+    // MEMORY CACHE
+    // -------------------------------------------------------------------------
+
+    final cached = _resolvedSongs[song.id];
+
+    if (cached != null && cached.isValid) {
+      return song.copyWith(streamUrl: cached.url);
+    }
+
+    if (cached != null) {
+      _resolvedSongs.remove(song.id);
+    }
+
+    // -------------------------------------------------------------------------
+    // ALREADY RESOLVING
+    // -------------------------------------------------------------------------
+
+    final existingTask = _preloadTasks[song.id];
+
+    if (existingTask != null) {
+      return existingTask;
+    }
+
+    // -------------------------------------------------------------------------
+    // FRESH RESOLUTION
+    // -------------------------------------------------------------------------
+
+    final task = _resolveFreshSong(song);
+
+    _preloadTasks[song.id] = task;
+
+    try {
+      final resolved = await task;
+
+      _resolvedSongs[song.id] = _CachedStream(
+        url: resolved.streamUrl!,
+        createdAt: DateTime.now(),
+      );
+
+      return resolved;
+    } finally {
+      if (identical(_preloadTasks[song.id], task)) {
+        _preloadTasks.remove(song.id);
+      }
+    }
+  }
+
+  // ===========================================================================
+  // FRESH STREAM RESOLUTION
+  // ===========================================================================
+
+  Future<Song> _resolveFreshSong(Song song) async {
+    final streamUrl = await _youtubeService.getAudioStreamUrl(song.id);
+
+    final trimmedUrl = streamUrl.trim();
+
+    if (trimmedUrl.isEmpty) {
+      throw Exception('Unable to resolve audio stream.');
+    }
+
+    return song.copyWith(streamUrl: trimmedUrl);
+  }
+
+  // ===========================================================================
+  // PRELOAD SONGS
+  // ===========================================================================
+  //
+  // This resolves stream URLs in the background.
+  // It does NOT start playback.
+  //
+  // That means:
+  //
+  // Search/Home → background resolve
+  // User taps    → cached URL → player starts
+  //
+
+  Future<void> preloadSongs(
+    List<Song> songs, {
+    int count = _defaultPreloadCount,
+  }) async {
+    if (songs.isEmpty || count <= 0) {
+      return;
+    }
+
+    final uniqueSongs = <String, Song>{};
+
+    for (final song in songs) {
+      final id = song.id.trim();
+
+      if (id.isEmpty) {
+        continue;
+      }
+
+      if (uniqueSongs.containsKey(id)) {
+        continue;
+      }
+
+      uniqueSongs[id] = song;
+
+      if (uniqueSongs.length >= count) {
+        break;
+      }
+    }
+
+    if (uniqueSongs.isEmpty) {
+      return;
+    }
+
+    // Resolve concurrently so the first few songs become available quickly.
+    await Future.wait(
+      uniqueSongs.values.map((song) async {
+        try {
+          await resolveSong(song);
+        } catch (_) {
+          // Preloading is best-effort.
+          // A failed preload must never break the UI.
+        }
+      }),
     );
+  }
+
+  // ===========================================================================
+  // PRELOAD NEXT QUEUED SONG
+  // ===========================================================================
+
+  void _preloadNextSong() {
+    final current = _queueService.currentSong;
+
+    if (current == null) {
+      return;
+    }
+
+    final songs = _queueService.queue;
+
+    final index = songs.indexWhere((song) => song.id == current.id);
+
+    if (index < 0 || index + 1 >= songs.length) {
+      return;
+    }
+
+    unawaited(preloadSongs([songs[index + 1]], count: 1));
+  }
+
+  // ===========================================================================
+  // INVALIDATE STREAM
+  // ===========================================================================
+
+  void _invalidateStream(String songId) {
+    _resolvedSongs.remove(songId);
   }
 
   // ===========================================================================
@@ -866,33 +932,36 @@ class MusicController extends ChangeNotifier {
       Song song, {
         List<Song>? sourceQueue,
       }) async {
+    // =========================================================================
+    // LATEST TAP WINS
+    // =========================================================================
+
+    final requestId = ++_playRequestId;
+
     _errorMessage = null;
 
+    // Update the UI immediately so the selected song is reflected at once.
     _updatePlayback(
       currentSong: song,
-      status:
-      PlaybackStatus.loading,
+      status: PlaybackStatus.loading,
       position: Duration.zero,
       isPlaying: false,
     );
 
     try {
-      // -----------------------------------------------------------------------
+      // =======================================================================
       // QUEUE
-      // -----------------------------------------------------------------------
+      // =======================================================================
 
       if (sourceQueue != null &&
           sourceQueue.isNotEmpty) {
-        final index =
-        sourceQueue.indexWhere(
-              (item) =>
-          item.id == song.id,
+        final index = sourceQueue.indexWhere(
+              (item) => item.id == song.id,
         );
 
         _queueService.setQueue(
           sourceQueue,
-          startIndex:
-          index >= 0 ? index : 0,
+          startIndex: index >= 0 ? index : 0,
         );
       } else {
         final current =
@@ -907,64 +976,145 @@ class MusicController extends ChangeNotifier {
         }
       }
 
-      // -----------------------------------------------------------------------
-      // RESOLVE FRESH STREAM
-      // -----------------------------------------------------------------------
+      // A newer tap has priority.
+      if (requestId != _playRequestId) {
+        return;
+      }
 
-      final resolvedSong =
-      await resolveSong(song);
+      // =======================================================================
+      // GET STREAM
+      // =======================================================================
 
-      // -----------------------------------------------------------------------
+      Song resolvedSong;
+
+      try {
+        resolvedSong = await resolveSong(song);
+      } catch (_) {
+        _invalidateStream(song.id);
+
+        if (requestId != _playRequestId) {
+          return;
+        }
+
+        // One fresh attempt.
+        resolvedSong = await resolveSong(song);
+      }
+
+      if (requestId != _playRequestId) {
+        return;
+      }
+
+      // =======================================================================
       // UPDATE QUEUE
-      // -----------------------------------------------------------------------
+      // =======================================================================
 
       _queueService.replaceCurrent(
         resolvedSong,
       );
 
+      _audioHandler?.updateSong(
+        resolvedSong,
+      );
+
       _updatePlayback(
-        currentSong:
-        resolvedSong,
-        status:
-        PlaybackStatus.loading,
+        currentSong: resolvedSong,
+        status: PlaybackStatus.loading,
       );
 
-      // -----------------------------------------------------------------------
-      // PLAY
-      // -----------------------------------------------------------------------
+      // =======================================================================
+      // START AUDIO
+      // =======================================================================
 
-      await _audioPlayerService
-          .playSong(
-        resolvedSong,
-      );
+      if (requestId != _playRequestId) {
+        return;
+      }
 
-      // -----------------------------------------------------------------------
+      try {
+        await _audioPlayerService.playSong(
+          resolvedSong,
+        );
+      } catch (_) {
+        // Cached URL may have expired.
+        // Get one fresh URL and retry.
+
+        if (requestId != _playRequestId) {
+          return;
+        }
+
+        _invalidateStream(
+          resolvedSong.id,
+        );
+
+        final freshSong =
+        await _resolveFreshSong(song);
+
+        if (requestId != _playRequestId) {
+          return;
+        }
+
+        _resolvedSongs[song.id] =
+            _CachedStream(
+              url: freshSong.streamUrl!,
+              createdAt: DateTime.now(),
+            );
+
+        _queueService.replaceCurrent(
+          freshSong,
+        );
+
+        _audioHandler?.updateSong(
+          freshSong,
+        );
+
+        await _audioPlayerService.playSong(
+          freshSong,
+        );
+
+        resolvedSong = freshSong;
+      }
+
+      if (requestId != _playRequestId) {
+        return;
+      }
+
+      // =======================================================================
       // RECENTLY PLAYED
-      // -----------------------------------------------------------------------
+      // =======================================================================
+      //
+      // Do not await local storage.
+      // It must never delay playback.
+      //
 
-      await _libraryService
-          .addToRecentlyPlayed(
-        resolvedSong,
+      unawaited(
+        _libraryService.addToRecentlyPlayed(
+          resolvedSong,
+        ),
       );
 
-      // -----------------------------------------------------------------------
-      // FINAL STATE
-      // -----------------------------------------------------------------------
+      // =======================================================================
+      // PLAYING
+      // =======================================================================
 
       _updatePlayback(
-        currentSong:
-        resolvedSong,
-        status:
-        PlaybackStatus.playing,
+        currentSong: resolvedSong,
+        status: PlaybackStatus.playing,
         isPlaying: true,
       );
+
+      // =======================================================================
+      // PRELOAD NEXT
+      // =======================================================================
+
+      _preloadNextSong();
     } catch (error) {
-      _errorMessage =
-          error.toString();
+      if (requestId != _playRequestId) {
+        return;
+      }
+
+      _errorMessage = error.toString();
 
       _updatePlayback(
-        status:
-        PlaybackStatus.error,
+        status: PlaybackStatus.error,
         isPlaying: false,
       );
 
@@ -977,7 +1127,7 @@ class MusicController extends ChangeNotifier {
   // ===========================================================================
 
   Future<void> play() async {
-    await _audioPlayerService.play();
+    _audioPlayerService.play();
   }
 
   // ===========================================================================
@@ -1004,12 +1154,8 @@ class MusicController extends ChangeNotifier {
   // SEEK
   // ===========================================================================
 
-  Future<void> seek(
-      Duration position,
-      ) async {
-    await _audioPlayerService.seek(
-      position,
-    );
+  Future<void> seek(Duration position) async {
+    await _audioPlayerService.seek(position);
   }
 
   // ===========================================================================
@@ -1017,14 +1163,13 @@ class MusicController extends ChangeNotifier {
   // ===========================================================================
 
   Future<void> next() async {
-    final song =
-    _queueService.next();
+    final song = _queueService.next();
 
     if (song == null) {
       return;
     }
 
-    await playSong(song);
+    await playSong(song, sourceQueue: _queueService.queue);
   }
 
   // ===========================================================================
@@ -1032,28 +1177,22 @@ class MusicController extends ChangeNotifier {
   // ===========================================================================
 
   Future<void> previous() async {
-    final song =
-    _queueService.previous();
+    final song = _queueService.previous();
 
     if (song == null) {
-      await seek(
-        Duration.zero,
-      );
+      await seek(Duration.zero);
 
       return;
     }
 
-    await playSong(song);
+    await playSong(song, sourceQueue: _queueService.queue);
   }
 
   // ===========================================================================
   // SET QUEUE
   // ===========================================================================
 
-  void setQueue(
-      List<Song> songs, {
-        int startIndex = 0,
-      }) {
+  void setQueue(List<Song> songs, {int startIndex = 0}) {
     if (songs.isEmpty) {
       _queueService.clear();
 
@@ -1062,16 +1201,9 @@ class MusicController extends ChangeNotifier {
       return;
     }
 
-    final safeIndex =
-    startIndex.clamp(
-      0,
-      songs.length - 1,
-    );
+    final safeIndex = startIndex.clamp(0, songs.length - 1);
 
-    _queueService.setQueue(
-      songs,
-      startIndex: safeIndex,
-    );
+    _queueService.setQueue(songs, startIndex: safeIndex);
 
     notifyListeners();
   }
@@ -1080,12 +1212,8 @@ class MusicController extends ChangeNotifier {
   // ADD QUEUE
   // ===========================================================================
 
-  void addToQueue(
-      Song song,
-      ) {
-    _queueService.add(
-      song,
-    );
+  void addToQueue(Song song) {
+    _queueService.add(song);
 
     notifyListeners();
   }
@@ -1094,16 +1222,12 @@ class MusicController extends ChangeNotifier {
   // ADD ALL TO QUEUE
   // ===========================================================================
 
-  void addAllToQueue(
-      List<Song> songs,
-      ) {
+  void addAllToQueue(List<Song> songs) {
     if (songs.isEmpty) {
       return;
     }
 
-    _queueService.addAll(
-      songs,
-    );
+    _queueService.addAll(songs);
 
     notifyListeners();
   }
@@ -1112,12 +1236,8 @@ class MusicController extends ChangeNotifier {
   // REMOVE FROM QUEUE
   // ===========================================================================
 
-  void removeFromQueue(
-      int index,
-      ) {
-    _queueService.removeAt(
-      index,
-    );
+  void removeFromQueue(int index) {
+    _queueService.removeAt(index);
 
     notifyListeners();
   }
@@ -1136,13 +1256,8 @@ class MusicController extends ChangeNotifier {
   // FAVORITES
   // ===========================================================================
 
-  Future<void> toggleFavorite(
-      Song song,
-      ) async {
-    await _libraryService
-        .toggleFavorite(
-      song,
-    );
+  Future<void> toggleFavorite(Song song) async {
+    await _libraryService.toggleFavorite(song);
 
     notifyListeners();
   }
@@ -1155,15 +1270,13 @@ class MusicController extends ChangeNotifier {
     required String name,
     String? description,
   }) async {
-    final trimmed =
-    name.trim();
+    final trimmed = name.trim();
 
     if (trimmed.isEmpty) {
       return null;
     }
 
-    await _playlistService
-        .createPlaylist(
+    await _playlistService.createPlaylist(
       name: trimmed,
       description: description,
     );
@@ -1173,8 +1286,7 @@ class MusicController extends ChangeNotifier {
 
     Playlist? createdPlaylist;
 
-    for (final playlist
-    in _playlistService.playlists.reversed) {
+    for (final playlist in _playlistService.playlists.reversed) {
       if (playlist.name == trimmed) {
         createdPlaylist = playlist;
         break;
@@ -1190,13 +1302,8 @@ class MusicController extends ChangeNotifier {
   // PLAYLIST DELETE
   // ===========================================================================
 
-  Future<void> deletePlaylist(
-      String playlistId,
-      ) async {
-    await _playlistService
-        .deletePlaylist(
-      playlistId,
-    );
+  Future<void> deletePlaylist(String playlistId) async {
+    await _playlistService.deletePlaylist(playlistId);
 
     notifyListeners();
   }
@@ -1205,22 +1312,14 @@ class MusicController extends ChangeNotifier {
   // PLAYLIST RENAME
   // ===========================================================================
 
-  Future<void> renamePlaylist(
-      String playlistId,
-      String name,
-      ) async {
-    final trimmedName =
-    name.trim();
+  Future<void> renamePlaylist(String playlistId, String name) async {
+    final trimmedName = name.trim();
 
     if (trimmedName.isEmpty) {
       return;
     }
 
-    await _playlistService
-        .renamePlaylist(
-      playlistId,
-      trimmedName,
-    );
+    await _playlistService.renamePlaylist(playlistId, trimmedName);
 
     notifyListeners();
   }
@@ -1229,15 +1328,8 @@ class MusicController extends ChangeNotifier {
   // ADD SONG TO PLAYLIST
   // ===========================================================================
 
-  Future<void> addToPlaylist(
-      String playlistId,
-      Song song,
-      ) async {
-    await _playlistService
-        .addSong(
-      playlistId,
-      song,
-    );
+  Future<void> addToPlaylist(String playlistId, Song song) async {
+    await _playlistService.addSong(playlistId, song);
 
     notifyListeners();
   }
@@ -1246,15 +1338,8 @@ class MusicController extends ChangeNotifier {
   // REMOVE SONG FROM PLAYLIST
   // ===========================================================================
 
-  Future<void> removeFromPlaylist(
-      String playlistId,
-      String songId,
-      ) async {
-    await _playlistService
-        .removeSong(
-      playlistId,
-      songId,
-    );
+  Future<void> removeFromPlaylist(String playlistId, String songId) async {
+    await _playlistService.removeSong(playlistId, songId);
 
     notifyListeners();
   }
@@ -1263,13 +1348,8 @@ class MusicController extends ChangeNotifier {
   // GET PLAYLIST
   // ===========================================================================
 
-  Playlist? getPlaylist(
-      String playlistId,
-      ) {
-    return _playlistService
-        .getPlaylist(
-      playlistId,
-    );
+  Playlist? getPlaylist(String playlistId) {
+    return _playlistService.getPlaylist(playlistId);
   }
 
   // ===========================================================================
@@ -1277,11 +1357,13 @@ class MusicController extends ChangeNotifier {
   // ===========================================================================
 
   Future<void> stop() async {
+    // Prevent an old network resolution from starting playback after stop.
+    _playRequestId++;
+
     await _audioPlayerService.stop();
 
     _updatePlayback(
-      status:
-      PlaybackStatus.idle,
+      status: PlaybackStatus.idle,
       isPlaying: false,
       position: Duration.zero,
     );
@@ -1310,6 +1392,9 @@ class MusicController extends ChangeNotifier {
 
     await _playerStateSubscription?.cancel();
 
+    _resolvedSongs.clear();
+    _preloadTasks.clear();
+
     await _audioPlayerService.dispose();
 
     _youtubeService.dispose();
@@ -1331,8 +1416,26 @@ class MusicController extends ChangeNotifier {
 
     _playerStateSubscription?.cancel();
 
+    _resolvedSongs.clear();
+    _preloadTasks.clear();
+
     _youtubeService.dispose();
 
     super.dispose();
+  }
+}
+
+// =============================================================================
+// TEMPORARY STREAM CACHE
+// =============================================================================
+
+class _CachedStream {
+  final String url;
+  final DateTime createdAt;
+
+  const _CachedStream({required this.url, required this.createdAt});
+
+  bool get isValid {
+    return DateTime.now().difference(createdAt) < const Duration(minutes: 5);
   }
 }

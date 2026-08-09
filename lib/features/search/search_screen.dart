@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_hicons/flutter_hicons.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,28 +13,22 @@ import '../../data/services/music_controller_provider.dart';
 import '../player/now_playing_screen.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({
-    super.key,
-  });
+  const SearchScreen({super.key});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final MusicController controller =
-      MusicControllerProvider.instance;
+  final MusicController controller = MusicControllerProvider.instance;
 
-  final TextEditingController _searchController =
-  TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   final FocusNode _focusNode = FocusNode();
 
-  final ScrollController _scrollController =
-  ScrollController();
+  final ScrollController _scrollController = ScrollController();
 
-  static const String _historyKey =
-      'chameleon_search_history';
+  static const String _historyKey = 'chameleon_search_history';
 
   Timer? _debounce;
 
@@ -47,18 +42,14 @@ class _SearchScreenState extends State<SearchScreen> {
 
     _loadSearchHistory();
 
-    _searchController.addListener(
-      _onTextChanged,
-    );
+    _searchController.addListener(_onTextChanged);
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
 
-    _searchController.removeListener(
-      _onTextChanged,
-    );
+    _searchController.removeListener(_onTextChanged);
 
     _searchController.dispose();
     _focusNode.dispose();
@@ -74,9 +65,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> _loadSearchHistory() async {
     final preferences = SharedPreferencesAsync();
 
-    final stored = await preferences.getStringList(
-      _historyKey,
-    );
+    final stored = await preferences.getStringList(_historyKey);
 
     if (!mounted) {
       return;
@@ -87,9 +76,7 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
-  Future<void> _saveSearchHistory(
-      String query,
-      ) async {
+  Future<void> _saveSearchHistory(String query) async {
     final cleanQuery = query.trim();
 
     if (cleanQuery.isEmpty) {
@@ -99,9 +86,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final updated = <String>[
       cleanQuery,
       ..._searchHistory.where(
-            (item) =>
-        item.toLowerCase() !=
-            cleanQuery.toLowerCase(),
+        (item) => item.toLowerCase() != cleanQuery.toLowerCase(),
       ),
     ].take(8).toList();
 
@@ -111,20 +96,11 @@ class _SearchScreenState extends State<SearchScreen> {
 
     final preferences = SharedPreferencesAsync();
 
-    await preferences.setStringList(
-      _historyKey,
-      updated,
-    );
+    await preferences.setStringList(_historyKey, updated);
   }
 
-  Future<void> _removeHistoryItem(
-      String query,
-      ) async {
-    final updated = _searchHistory
-        .where(
-          (item) => item != query,
-    )
-        .toList();
+  Future<void> _removeHistoryItem(String query) async {
+    final updated = _searchHistory.where((item) => item != query).toList();
 
     setState(() {
       _searchHistory = updated;
@@ -132,10 +108,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     final preferences = SharedPreferencesAsync();
 
-    await preferences.setStringList(
-      _historyKey,
-      updated,
-    );
+    await preferences.setStringList(_historyKey, updated);
   }
 
   Future<void> _clearHistory() async {
@@ -145,9 +118,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     final preferences = SharedPreferencesAsync();
 
-    await preferences.remove(
-      _historyKey,
-    );
+    await preferences.remove(_historyKey);
   }
 
   // ===========================================================================
@@ -175,42 +146,26 @@ class _SearchScreenState extends State<SearchScreen> {
       return;
     }
 
-    _debounce = Timer(
-      const Duration(
-        milliseconds: 450,
-      ),
-          () {
-        _performSearch(
-          query,
-          saveHistory: false,
-        );
-      },
-    );
+    _debounce = Timer(const Duration(milliseconds: 450), () {
+      _performSearch(query, saveHistory: false);
+    });
   }
 
-  Future<void> _submit(
-      String value,
-      ) async {
+  Future<void> _submit(String value) async {
     final query = value.trim();
 
     if (query.isEmpty) {
       return;
     }
 
-    await _performSearch(
-      query,
-      saveHistory: true,
-    );
+    await _performSearch(query, saveHistory: true);
 
     if (mounted) {
       FocusScope.of(context).unfocus();
     }
   }
 
-  Future<void> _performSearch(
-      String query, {
-        required bool saveHistory,
-      }) async {
+  Future<void> _performSearch(String query, {required bool saveHistory}) async {
     final cleanQuery = query.trim();
 
     if (cleanQuery.isEmpty) {
@@ -224,32 +179,20 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     if (saveHistory) {
-      await _saveSearchHistory(
-        cleanQuery,
-      );
+      await _saveSearchHistory(cleanQuery);
     }
 
-    await controller.search(
-      cleanQuery,
-    );
+    await controller.search(cleanQuery);
   }
 
-  Future<void> _searchFromHistory(
-      String query,
-      ) async {
+  Future<void> _searchFromHistory(String query) async {
     _searchController.text = query;
 
-    _searchController.selection =
-        TextSelection.fromPosition(
-          TextPosition(
-            offset: query.length,
-          ),
-        );
-
-    await _performSearch(
-      query,
-      saveHistory: true,
+    _searchController.selection = TextSelection.fromPosition(
+      TextPosition(offset: query.length),
     );
+
+    await _performSearch(query, saveHistory: true);
   }
 
   void _clearSearch() {
@@ -268,34 +211,23 @@ class _SearchScreenState extends State<SearchScreen> {
   // PLAY
   // ===========================================================================
 
-  Future<void> _playSong(
-      Song song,
-      List<Song> queue,
-      ) async {
+  Future<void> _playSong(Song song) async {
     try {
-      await controller.playSong(
-        song,
-        sourceQueue: queue,
-      );
+      await controller.playSong(song);
 
       if (!mounted) {
         return;
       }
 
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) =>
-          const NowPlayingScreen(),
-        ),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const NowPlayingScreen()));
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      _showMessage(
-        'Unable to play this song.',
-      );
+      _showMessage('Unable to play this song.');
     }
   }
 
@@ -303,10 +235,7 @@ class _SearchScreenState extends State<SearchScreen> {
   // SONG OPTIONS
   // ===========================================================================
 
-  Future<void> _showSongOptions(
-      Song song,
-      List<Song> queue,
-      ) async {
+  Future<void> _showSongOptions(Song song, List<Song> queue) async {
     final theme = Theme.of(context);
 
     await showModalBottomSheet<void>(
@@ -314,202 +243,141 @@ class _SearchScreenState extends State<SearchScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (sheetContext) {
-        final isFavorite =
-        controller.isFavorite(song);
+        final isFavorite = controller.isFavorite(song);
 
         return SafeArea(
-          child: Container(
-            margin: EdgeInsets.fromLTRB(
-              10.w,
-              0,
-              10.w,
-              10.h,
-            ),
-            padding: EdgeInsets.fromLTRB(
-              8.w,
-              8.h,
-              8.w,
-              8.h,
-            ),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius:
-              BorderRadius.circular(30.r),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 36.w,
-                  height: 4.h,
-                  margin: EdgeInsets.only(
-                    bottom: 10.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme
-                        .colorScheme
-                        .onSurface
-                        .withValues(
-                      alpha: 0.12,
-                    ),
-                    borderRadius:
-                    BorderRadius.circular(
-                      99.r,
-                    ),
-                  ),
+              child: Container(
+                margin: EdgeInsets.fromLTRB(10.w, 0, 10.w, 10.h),
+                padding: EdgeInsets.fromLTRB(8.w, 8.h, 8.w, 8.h),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(30.r),
                 ),
-
-                // Song header.
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    10.w,
-                    4.h,
-                    10.w,
-                    12.h,
-                  ),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius:
-                        BorderRadius.circular(
-                          13.r,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 36.w,
+                      height: 4.h,
+                      margin: EdgeInsets.only(bottom: 10.h),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.12,
                         ),
-                        child: SizedBox(
-                          width: 52.w,
-                          height: 52.w,
-                          child:
-                          _Artwork(
-                            url:
-                            song.thumbnailUrl,
+                        borderRadius: BorderRadius.circular(99.r),
+                      ),
+                    ),
+
+                    // Song header.
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(10.w, 4.h, 10.w, 12.h),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(13.r),
+                            child: SizedBox(
+                              width: 52.w,
+                              height: 52.w,
+                              child: _Artwork(url: song.thumbnailUrl),
+                            ),
                           ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 12.w,
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              song.title,
-                              maxLines: 1,
-                              overflow:
-                              TextOverflow.ellipsis,
-                              style: theme
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                fontWeight:
-                                FontWeight.w700,
-                              ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  song.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                SizedBox(height: 3.h),
+                                Text(
+                                  song.artist,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(
-                              height: 3.h,
-                            ),
-                            Text(
-                              song.artist,
-                              maxLines: 1,
-                              overflow:
-                              TextOverflow.ellipsis,
-                              style: theme
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                color: theme
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+
+                    // Like.
+                    _OptionTile(
+                      icon: isFavorite
+                          ? Hicons.heart1Bold
+                          : Hicons.heart1LightOutline,
+                      title: isFavorite ? 'Unlike' : 'Like',
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+
+                        await controller.toggleFavorite(song);
+
+                        if (mounted) {
+                          setState(() {});
+                          _showMessage(
+                            isFavorite
+                                ? 'Removed from favorites'
+                                : 'Added to favorites',
+                          );
+                        }
+                      },
+                    ),
+
+                    // Add to queue.
+                    _OptionTile(
+                      icon: Hicons.musicFilterBold,
+                      title: 'Add to queue',
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+
+                        controller.addToQueue(song);
+
+                        _showMessage('Added to queue');
+                      },
+                    ),
+
+                    // Add to playlist.
+                    _OptionTile(
+                      icon: Icons.playlist_add_rounded,
+                      title: 'Add to playlist',
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+
+                        await _showPlaylistPicker(song);
+                      },
+                    ),
+
+                    // Play now.
+                    _OptionTile(
+                      icon: Hicons.playLightOutline,
+                      title: 'Play now',
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+
+                        await _playSong(song);
+                        },
+                    ),
+                  ],
                 ),
-
-                // Like.
-                _OptionTile(
-                  icon: isFavorite
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                  title: isFavorite
-                      ? 'Unlike'
-                      : 'Like',
-                  onTap: () async {
-                    Navigator.pop(sheetContext);
-
-                    await controller
-                        .toggleFavorite(song);
-
-                    if (mounted) {
-                      setState(() {});
-                      _showMessage(
-                        isFavorite
-                            ? 'Removed from favorites'
-                            : 'Added to favorites',
-                      );
-                    }
-                  },
-                ),
-
-                // Add to queue.
-                _OptionTile(
-                  icon: Icons.queue_music_rounded,
-                  title: 'Add to queue',
-                  onTap: () {
-                    Navigator.pop(sheetContext);
-
-                    controller.addToQueue(song);
-
-                    _showMessage(
-                      'Added to queue',
-                    );
-                  },
-                ),
-
-                // Add to playlist.
-                _OptionTile(
-                  icon: Icons.playlist_add_rounded,
-                  title: 'Add to playlist',
-                  onTap: () async {
-                    Navigator.pop(sheetContext);
-
-                    await _showPlaylistPicker(
-                      song,
-                    );
-                  },
-                ),
-
-                // Play now.
-                _OptionTile(
-                  icon: Icons.play_arrow_rounded,
-                  title: 'Play now',
-                  onTap: () async {
-                    Navigator.pop(sheetContext);
-
-                    await _playSong(
-                      song,
-                      queue,
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        )
+              ),
+            )
             .animate()
-            .fadeIn(
-          duration: 220.ms,
-        )
+            .fadeIn(duration: 220.ms)
             .slideY(
-          begin: 0.04,
-          end: 0,
-          duration: 300.ms,
-          curve:
-          Curves.easeOutCubic,
-        );
+              begin: 0.04,
+              end: 0,
+              duration: 300.ms,
+              curve: Curves.easeOutCubic,
+            );
       },
     );
   }
@@ -518,15 +386,11 @@ class _SearchScreenState extends State<SearchScreen> {
   // PLAYLIST PICKER
   // ===========================================================================
 
-  Future<void> _showPlaylistPicker(
-      Song song,
-      ) async {
+  Future<void> _showPlaylistPicker(Song song) async {
     final playlists = controller.playlists;
 
     if (playlists.isEmpty) {
-      await _showCreatePlaylistForSong(
-        song,
-      );
+      await _showCreatePlaylistForSong(song);
       return;
     }
 
@@ -543,116 +407,64 @@ class _SearchScreenState extends State<SearchScreen> {
       builder: (sheetContext) {
         return SafeArea(
           child: Container(
-            constraints: BoxConstraints(
-              maxHeight: 0.72.sh,
-            ),
-            margin: EdgeInsets.fromLTRB(
-              10.w,
-              0,
-              10.w,
-              10.h,
-            ),
-            padding: EdgeInsets.only(
-              top: 8.h,
-              bottom: 8.h,
-            ),
+            constraints: BoxConstraints(maxHeight: 0.72.sh),
+            margin: EdgeInsets.fromLTRB(10.w, 0, 10.w, 10.h),
+            padding: EdgeInsets.only(top: 8.h, bottom: 8.h),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
-              borderRadius:
-              BorderRadius.circular(30.r),
+              borderRadius: BorderRadius.circular(30.r),
             ),
             child: Column(
               children: [
                 Container(
                   width: 36.w,
                   height: 4.h,
-                  margin: EdgeInsets.only(
-                    bottom: 14.h,
-                  ),
+                  margin: EdgeInsets.only(bottom: 14.h),
                   decoration: BoxDecoration(
-                    color: theme
-                        .colorScheme
-                        .onSurface
-                        .withValues(
-                      alpha: 0.12,
-                    ),
-                    borderRadius:
-                    BorderRadius.circular(
-                      99.r,
-                    ),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(99.r),
                   ),
                 ),
                 Padding(
-                  padding:
-                  EdgeInsets.symmetric(
-                    horizontal: 20.w,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
                   child: Row(
                     children: [
                       Expanded(
                         child: Text(
                           'Add to playlist',
-                          style: theme
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(
+                          style: theme.textTheme.titleLarge?.copyWith(
                             fontSize: 20.sp,
-                            fontWeight:
-                            FontWeight.w700,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                       IconButton(
                         onPressed: () {
-                          Navigator.pop(
-                            sheetContext,
-                          );
-                          _showCreatePlaylistForSong(
-                            song,
-                          );
+                          Navigator.pop(sheetContext);
+                          _showCreatePlaylistForSong(song);
                         },
-                        icon: const Icon(
-                          Icons.add_rounded,
-                        ),
+                        icon: const Icon(Icons.add_rounded),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: 4.h,
-                ),
+                SizedBox(height: 4.h),
                 Expanded(
                   child: ListView.builder(
-                    physics:
-                    const BouncingScrollPhysics(),
-                    itemCount:
-                    playlists.length,
-                    itemBuilder:
-                        (
-                        context,
-                        index,
-                        ) {
-                      final playlist =
-                      playlists[index];
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: playlists.length,
+                    itemBuilder: (context, index) {
+                      final playlist = playlists[index];
 
                       return _PlaylistOption(
-                        playlist:
-                        playlist,
+                        playlist: playlist,
                         onTap: () async {
-                          Navigator.pop(
-                            sheetContext,
-                          );
+                          Navigator.pop(sheetContext);
 
-                          await controller
-                              .addToPlaylist(
-                            playlist.id,
-                            song,
-                          );
+                          await controller.addToPlaylist(playlist.id, song);
 
                           if (mounted) {
-                            _showMessage(
-                              'Added to ${playlist.name}',
-                            );
+                            _showMessage('Added to ${playlist.name}');
                           }
                         },
                       );
@@ -667,80 +479,50 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Future<void> _showCreatePlaylistForSong(
-      Song song,
-      ) async {
-    final nameController =
-    TextEditingController();
+  Future<void> _showCreatePlaylistForSong(Song song) async {
+    final nameController = TextEditingController();
 
-    final name =
-    await showDialog<String>(
+    final name = await showDialog<String>(
       context: context,
       builder: (dialogContext) {
-        final theme =
-        Theme.of(dialogContext);
+        final theme = Theme.of(dialogContext);
 
         return AlertDialog(
-          backgroundColor:
-          theme.colorScheme.surface,
+          backgroundColor: theme.colorScheme.surface,
           shape: RoundedRectangleBorder(
-            borderRadius:
-            BorderRadius.circular(
-              28.r,
-            ),
+            borderRadius: BorderRadius.circular(28.r),
           ),
-          title: const Text(
-            'New playlist',
-          ),
+          title: const Text('New playlist'),
           content: TextField(
-            controller:
-            nameController,
+            controller: nameController,
             autofocus: true,
-            textInputAction:
-            TextInputAction.done,
-            decoration:
-            const InputDecoration(
-              hintText:
-              'Playlist name',
-              border:
-              InputBorder.none,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(
+              hintText: 'Playlist name',
+              border: InputBorder.none,
             ),
             onSubmitted: (value) {
               if (value.trim().isNotEmpty) {
-                Navigator.pop(
-                  dialogContext,
-                  value.trim(),
-                );
+                Navigator.pop(dialogContext, value.trim());
               }
             },
           ),
           actions: [
             TextButton(
-              onPressed: () =>
-                  Navigator.pop(
-                    dialogContext,
-                  ),
-              child:
-              const Text('Cancel'),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
             ),
             FilledButton(
               onPressed: () {
-                final value =
-                nameController
-                    .text
-                    .trim();
+                final value = nameController.text.trim();
 
                 if (value.isEmpty) {
                   return;
                 }
 
-                Navigator.pop(
-                  dialogContext,
-                  value,
-                );
+                Navigator.pop(dialogContext, value);
               },
-              child:
-              const Text('Create'),
+              child: const Text('Create'),
             ),
           ],
         );
@@ -749,34 +531,24 @@ class _SearchScreenState extends State<SearchScreen> {
 
     nameController.dispose();
 
-    if (name == null ||
-        name.trim().isEmpty) {
+    if (name == null || name.trim().isEmpty) {
       return;
     }
 
-    await controller.createPlaylist(
-      name: name.trim(),
-    );
+    await controller.createPlaylist(name: name.trim());
 
-    final playlists =
-        controller.playlists;
+    final playlists = controller.playlists;
 
     if (playlists.isEmpty) {
       return;
     }
 
-    final created =
-        playlists.last;
+    final created = playlists.last;
 
-    await controller.addToPlaylist(
-      created.id,
-      song,
-    );
+    await controller.addToPlaylist(created.id, song);
 
     if (mounted) {
-      _showMessage(
-        'Created ${created.name}',
-      );
+      _showMessage('Created ${created.name}');
     }
   }
 
@@ -784,9 +556,7 @@ class _SearchScreenState extends State<SearchScreen> {
   // MESSAGE
   // ===========================================================================
 
-  void _showMessage(
-      String message,
-      ) {
+  void _showMessage(String message) {
     if (!mounted) {
       return;
     }
@@ -796,19 +566,10 @@ class _SearchScreenState extends State<SearchScreen> {
       ..showSnackBar(
         SnackBar(
           content: Text(message),
-          behavior:
-          SnackBarBehavior.floating,
-          margin: EdgeInsets.fromLTRB(
-            18.w,
-            0,
-            18.w,
-            90.h,
-          ),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.fromLTRB(18.w, 0, 18.w, 90.h),
           shape: RoundedRectangleBorder(
-            borderRadius:
-            BorderRadius.circular(
-              18.r,
-            ),
+            borderRadius: BorderRadius.circular(18.r),
           ),
         ),
       );
@@ -823,80 +584,48 @@ class _SearchScreenState extends State<SearchScreen> {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
-        final theme =
-        Theme.of(context);
+        final theme = Theme.of(context);
 
-        final hasQuery =
-            _searchController.text
-                .trim()
-                .isNotEmpty;
+        final hasQuery = _searchController.text.trim().isNotEmpty;
 
-        final results =
-            controller.searchResults;
+        final results = controller.searchResults;
 
-        final currentSong =
-            controller.currentSong;
+        final currentSong = controller.currentSong;
 
         return Scaffold(
-          backgroundColor:
-          theme.scaffoldBackgroundColor,
+          backgroundColor: theme.scaffoldBackgroundColor,
           body: SafeArea(
             bottom: false,
             child: Stack(
               children: [
                 CustomScrollView(
-                  controller:
-                  _scrollController,
-                  physics:
-                  const BouncingScrollPhysics(),
+                  controller: _scrollController,
+                  physics: const BouncingScrollPhysics(),
                   keyboardDismissBehavior:
-                  ScrollViewKeyboardDismissBehavior
-                      .onDrag,
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   slivers: [
                     // =========================================================
                     // HEADER
                     // =========================================================
-
                     SliverPadding(
-                      padding:
-                      EdgeInsets.fromLTRB(
-                        22.w,
-                        22.h,
-                        22.w,
-                        0,
-                      ),
-                      sliver:
-                      SliverToBoxAdapter(
+                      padding: EdgeInsets.fromLTRB(22.w, 22.h, 22.w, 0),
+                      sliver: SliverToBoxAdapter(
                         child: Column(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Search',
-                              style: theme
-                                  .textTheme
-                                  .displaySmall
-                                  ?.copyWith(
-                                fontSize:
-                                38.sp,
-                                fontWeight:
-                                FontWeight.w700,
-                                letterSpacing:
-                                -1.4,
+                              style: theme.textTheme.displaySmall?.copyWith(
+                                fontSize: 38.sp,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -1.4,
                               ),
                             ),
-                            SizedBox(
-                              height: 5.h,
-                            ),
+                            SizedBox(height: 5.h),
                             Text(
                               'Find something worth listening to.',
-                              style: theme
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                color: theme
-                                    .colorScheme
-                                    .onSurfaceVariant,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -907,29 +636,15 @@ class _SearchScreenState extends State<SearchScreen> {
                     // =========================================================
                     // SEARCH FIELD
                     // =========================================================
-
                     SliverPadding(
-                      padding:
-                      EdgeInsets.fromLTRB(
-                        18.w,
-                        20.h,
-                        18.w,
-                        0,
-                      ),
-                      sliver:
-                      SliverToBoxAdapter(
-                        child:
-                        _SearchField(
-                          controller:
-                          _searchController,
-                          focusNode:
-                          _focusNode,
-                          hasText:
-                          hasQuery,
-                          onSubmitted:
-                          _submit,
-                          onClear:
-                          _clearSearch,
+                      padding: EdgeInsets.fromLTRB(18.w, 20.h, 18.w, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: _SearchField(
+                          controller: _searchController,
+                          focusNode: _focusNode,
+                          hasText: hasQuery,
+                          onSubmitted: _submit,
+                          onClear: _clearSearch,
                         ),
                       ),
                     ),
@@ -937,45 +652,26 @@ class _SearchScreenState extends State<SearchScreen> {
                     // =========================================================
                     // SEARCHING
                     // =========================================================
-
                     if (controller.isSearching)
                       SliverPadding(
-                        padding:
-                        EdgeInsets.fromLTRB(
-                          22.w,
-                          24.h,
-                          22.w,
-                          0,
-                        ),
-                        sliver:
-                        const SliverToBoxAdapter(
-                          child:
-                          _SearchingIndicator(),
+                        padding: EdgeInsets.fromLTRB(22.w, 24.h, 22.w, 0),
+                        sliver: const SliverToBoxAdapter(
+                          child: _SearchingIndicator(),
                         ),
                       ),
 
                     // =========================================================
                     // RESULTS HEADER
                     // =========================================================
-
                     if (!controller.isSearching &&
                         hasQuery &&
                         results.isNotEmpty)
                       SliverPadding(
-                        padding:
-                        EdgeInsets.fromLTRB(
-                          22.w,
-                          25.h,
-                          22.w,
-                          0,
-                        ),
-                        sliver:
-                        SliverToBoxAdapter(
-                          child:
-                          _SectionHeader(
+                        padding: EdgeInsets.fromLTRB(22.w, 25.h, 22.w, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: _SectionHeader(
                             title: 'Results',
-                            count:
-                            results.length,
+                            count: results.length,
                           ),
                         ),
                       ),
@@ -983,43 +679,21 @@ class _SearchScreenState extends State<SearchScreen> {
                     // =========================================================
                     // RESULTS
                     // =========================================================
-
                     if (!controller.isSearching &&
                         hasQuery &&
                         results.isNotEmpty)
                       SliverPadding(
-                        padding:
-                        EdgeInsets.fromLTRB(
-                          18.w,
-                          10.h,
-                          18.w,
-                          0,
-                        ),
-                        sliver:
-                        SliverList.builder(
-                          itemCount:
-                          results.length,
-                          itemBuilder:
-                              (
-                              context,
-                              index,
-                              ) {
-                            final song =
-                            results[index];
+                        padding: EdgeInsets.fromLTRB(18.w, 10.h, 18.w, 0),
+                        sliver: SliverList.builder(
+                          itemCount: results.length,
+                          itemBuilder: (context, index) {
+                            final song = results[index];
 
                             return _ResultTile(
                               song: song,
                               index: index,
-                              onPlay: () =>
-                                  _playSong(
-                                    song,
-                                    results,
-                                  ),
-                              onMore: () =>
-                                  _showSongOptions(
-                                    song,
-                                    results,
-                                  ),
+                              onPlay: () => _playSong(song),
+                              onMore: () => _showSongOptions(song, results),
                             );
                           },
                         ),
@@ -1028,84 +702,39 @@ class _SearchScreenState extends State<SearchScreen> {
                     // =========================================================
                     // NO RESULTS
                     // =========================================================
-
                     if (!controller.isSearching &&
                         hasQuery &&
                         _hasSubmittedSearch &&
                         results.isEmpty)
                       SliverPadding(
-                        padding:
-                        EdgeInsets.fromLTRB(
-                          22.w,
-                          65.h,
-                          22.w,
-                          0,
-                        ),
-                        sliver:
-                        const SliverToBoxAdapter(
-                          child:
-                          _NoResults(),
-                        ),
+                        padding: EdgeInsets.fromLTRB(22.w, 65.h, 22.w, 0),
+                        sliver: const SliverToBoxAdapter(child: _NoResults()),
                       ),
 
                     // =========================================================
                     // RECENT SEARCHES
                     // =========================================================
-
-                    if (!hasQuery &&
-                        _searchHistory.isNotEmpty)
+                    if (!hasQuery && _searchHistory.isNotEmpty)
                       SliverPadding(
-                        padding:
-                        EdgeInsets.fromLTRB(
-                          22.w,
-                          30.h,
-                          22.w,
-                          0,
-                        ),
-                        sliver:
-                        SliverToBoxAdapter(
-                          child:
-                          _RecentSearchHeader(
-                            onClear:
-                            _clearHistory,
-                          ),
+                        padding: EdgeInsets.fromLTRB(22.w, 30.h, 22.w, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: _RecentSearchHeader(onClear: _clearHistory),
                         ),
                       ),
 
-                    if (!hasQuery &&
-                        _searchHistory.isNotEmpty)
+                    if (!hasQuery && _searchHistory.isNotEmpty)
                       SliverPadding(
-                        padding:
-                        EdgeInsets.fromLTRB(
-                          18.w,
-                          10.h,
-                          18.w,
-                          0,
-                        ),
-                        sliver:
-                        SliverList.builder(
-                          itemCount:
-                          _searchHistory.length,
-                          itemBuilder:
-                              (
-                              context,
-                              index,
-                              ) {
-                            final query =
-                            _searchHistory[
-                            index];
+                        padding: EdgeInsets.fromLTRB(18.w, 10.h, 18.w, 0),
+                        sliver: SliverList.builder(
+                          itemCount: _searchHistory.length,
+                          itemBuilder: (context, index) {
+                            final query = _searchHistory[index];
 
                             return _HistoryTile(
                               query: query,
                               index: index,
-                              onTap: () =>
-                                  _searchFromHistory(
-                                    query,
-                                  ),
-                              onRemove: () =>
-                                  _removeHistoryItem(
-                                    query,
-                                  ),
+                              onTap: () => _searchFromHistory(query),
+                              onRemove: () => _removeHistoryItem(query),
                             );
                           },
                         ),
@@ -1114,51 +743,27 @@ class _SearchScreenState extends State<SearchScreen> {
                     // =========================================================
                     // RECENTLY PLAYED
                     // =========================================================
-
-                    if (!hasQuery &&
-                        controller
-                            .recentlyPlayed
-                            .isNotEmpty)
+                    if (!hasQuery && controller.recentlyPlayed.isNotEmpty)
                       SliverPadding(
-                        padding:
-                        EdgeInsets.fromLTRB(
+                        padding: EdgeInsets.fromLTRB(
                           22.w,
-                          _searchHistory
-                              .isNotEmpty
-                              ? 30.h
-                              : 26.h,
+                          _searchHistory.isNotEmpty ? 30.h : 26.h,
                           0,
                           0,
                         ),
-                        sliver:
-                        const SliverToBoxAdapter(
-                          child:
-                          _SectionHeader(
-                            title:
-                            'Recently played',
-                          ),
+                        sliver: const SliverToBoxAdapter(
+                          child: _SectionHeader(title: 'Recently played'),
                         ),
                       ),
 
-                    if (!hasQuery &&
-                        controller
-                            .recentlyPlayed
-                            .isNotEmpty)
+                    if (!hasQuery && controller.recentlyPlayed.isNotEmpty)
                       SliverToBoxAdapter(
-                        child:
-                        Padding(
-                          padding:
-                          EdgeInsets.only(
-                            top: 12.h,
-                          ),
-                          child:
-                          _RecentlyPlayedList(
-                            songs: controller
-                                .recentlyPlayed,
-                            onPlay:
-                            _playSong,
-                            onMore:
-                            _showSongOptions,
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 12.h),
+                          child: _RecentlyPlayedList(
+                            songs: controller.recentlyPlayed,
+                            onPlay: _playSong,
+                            onMore: _showSongOptions,
                           ),
                         ),
                       ),
@@ -1166,33 +771,18 @@ class _SearchScreenState extends State<SearchScreen> {
                     // =========================================================
                     // QUICK SEARCH
                     // =========================================================
-
                     if (!hasQuery)
                       SliverPadding(
-                        padding:
-                        EdgeInsets.fromLTRB(
-                          22.w,
-                          30.h,
-                          22.w,
-                          0,
-                        ),
-                        sliver:
-                        SliverToBoxAdapter(
-                          child:
-                          _QuickSearch(
-                            onTap:
-                            _searchFromHistory,
-                          ),
+                        padding: EdgeInsets.fromLTRB(22.w, 30.h, 22.w, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: _QuickSearch(onTap: _searchFromHistory),
                         ),
                       ),
 
                     // Space for mini player.
                     SliverToBoxAdapter(
                       child: SizedBox(
-                        height: currentSong !=
-                            null
-                            ? 180.h
-                            : 110.h,
+                        height: currentSong != null ? 180.h : 110.h,
                       ),
                     ),
                   ],
@@ -1201,7 +791,6 @@ class _SearchScreenState extends State<SearchScreen> {
                 // =============================================================
                 // MINI PLAYER
                 // =============================================================
-
                 if (currentSong != null)
                   Positioned(
                     left: 12.w,
@@ -1209,33 +798,19 @@ class _SearchScreenState extends State<SearchScreen> {
                     bottom: 10.h,
                     child: _MiniPlayer(
                       song: currentSong,
-                      isPlaying: controller
-                          .playbackState
-                          .isPlaying,
-                      position: controller
-                          .playbackState
-                          .position,
-                      duration: controller
-                          .playbackState
-                          .duration,
-                      onPlayPause:
-                      controller
-                          .togglePlayPause,
+                      isPlaying: controller.playbackState.isPlaying,
+                      position: controller.playbackState.position,
+                      duration: controller.playbackState.duration,
+                      onPlayPause: controller.togglePlayPause,
                       onTap: () {
-                        Navigator.of(
-                          context,
-                        ).push(
+                        Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) =>
-                            const NowPlayingScreen(),
+                            builder: (_) => const NowPlayingScreen(),
                           ),
                         );
                       },
                       onMore: () =>
-                          _showSongOptions(
-                            currentSong,
-                            controller.queue,
-                          ),
+                          _showSongOptions(currentSong, controller.queue),
                     ),
                   ),
               ],
@@ -1271,94 +846,67 @@ class _SearchField extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      height: 60.h,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius:
-        BorderRadius.circular(22.r),
-      ),
-      child: Row(
-        children: [
-          SizedBox(width: 18.w),
-          Icon(
-            Icons.search_rounded,
-            size: 24.sp,
-            color: theme
-                .colorScheme
-                .onSurfaceVariant,
+          height: 60.h,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(22.r),
           ),
-          SizedBox(width: 10.w),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              textInputAction:
-              TextInputAction.search,
-              onSubmitted: onSubmitted,
-              style: theme
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(
-                fontSize: 15.sp,
-                fontWeight: FontWeight.w500,
+          child: Row(
+            children: [
+              SizedBox(width: 18.w),
+              Icon(
+                Icons.search_rounded,
+                size: 24.sp,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
-              decoration:
-              InputDecoration(
-                hintText:
-                'Songs, artists...',
-                hintStyle: theme
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(
-                  color: theme
-                      .colorScheme
-                      .onSurfaceVariant,
+              SizedBox(width: 10.w),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: onSubmitted,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Songs, artists...',
+                    hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
                 ),
-                border: InputBorder.none,
-                enabledBorder:
-                InputBorder.none,
-                focusedBorder:
-                InputBorder.none,
-                contentPadding:
-                EdgeInsets.zero,
               ),
-            ),
+              if (hasText)
+                GestureDetector(
+                  onTap: onClear,
+                  child: Container(
+                    width: 34.w,
+                    height: 34.w,
+                    margin: EdgeInsets.only(right: 10.w),
+                    decoration: BoxDecoration(
+                      color: theme.scaffoldBackgroundColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.close_rounded, size: 18.sp),
+                  ),
+                ),
+            ],
           ),
-          if (hasText)
-            GestureDetector(
-              onTap: onClear,
-              child: Container(
-                width: 34.w,
-                height: 34.w,
-                margin:
-                EdgeInsets.only(
-                  right: 10.w,
-                ),
-                decoration:
-                BoxDecoration(
-                  color: theme
-                      .scaffoldBackgroundColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.close_rounded,
-                  size: 18.sp,
-                ),
-              ),
-            ),
-        ],
-      ),
-    )
+        )
         .animate()
-        .fadeIn(
-      duration: 350.ms,
-    )
+        .fadeIn(duration: 350.ms)
         .slideY(
-      begin: 0.04,
-      end: 0,
-      duration: 350.ms,
-      curve: Curves.easeOutCubic,
-    );
+          begin: 0.04,
+          end: 0,
+          duration: 350.ms,
+          curve: Curves.easeOutCubic,
+        );
   }
 }
 
@@ -1386,11 +934,9 @@ class _ResultTile extends StatelessWidget {
       return '';
     }
 
-    final minutes =
-        duration.inMinutes;
+    final minutes = duration.inMinutes;
 
-    final seconds =
-        duration.inSeconds % 60;
+    final seconds = duration.inSeconds % 60;
 
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
@@ -1400,109 +946,77 @@ class _ResultTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return GestureDetector(
-      onTap: onPlay,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding:
-        EdgeInsets.symmetric(
-          vertical: 6.h,
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius:
-              BorderRadius.circular(16.r),
-              child: SizedBox(
-                width: 62.w,
-                height: 62.w,
-                child: _Artwork(
-                  url: song.thumbnailUrl,
+          onTap: onPlay,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 6.h),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16.r),
+                  child: SizedBox(
+                    width: 62.w,
+                    height: 62.w,
+                    child: _Artwork(url: song.thumbnailUrl),
+                  ),
                 ),
-              ),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    song.title,
-                    maxLines: 1,
-                    overflow:
-                    TextOverflow.ellipsis,
-                    style: theme
-                        .textTheme
-                        .titleSmall
-                        ?.copyWith(
-                      fontSize: 13.5.sp,
-                      fontWeight:
-                      FontWeight.w700,
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        song.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontSize: 13.5.sp,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 3.h),
+                      Text(
+                        song.artist,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 11.sp,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_durationText().isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.only(right: 2.w),
+                    child: Text(
+                      _durationText(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 10.sp,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
-                  SizedBox(height: 3.h),
-                  Text(
-                    song.artist,
-                    maxLines: 1,
-                    overflow:
-                    TextOverflow.ellipsis,
-                    style: theme
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(
-                      fontSize: 11.sp,
-                      color: theme
-                          .colorScheme
-                          .onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (_durationText().isNotEmpty)
-              Padding(
-                padding:
-                EdgeInsets.only(
-                  right: 2.w,
+                SizedBox(width: 2.w),
+                IconButton(
+                  tooltip: 'More',
+                  onPressed: onMore,
+                  icon: Icon(Icons.more_horiz_rounded, size: 24.sp),
                 ),
-                child: Text(
-                  _durationText(),
-                  style: theme
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(
-                    fontSize: 10.sp,
-                    color: theme
-                        .colorScheme
-                        .onSurfaceVariant,
-                  ),
-                ),
-              ),
-            SizedBox(width: 2.w),
-            IconButton(
-              tooltip: 'More',
-              onPressed: onMore,
-              icon: Icon(
-                Icons.more_horiz_rounded,
-                size: 24.sp,
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-    )
+          ),
+        )
         .animate()
-        .fadeIn(
-      delay: (25 * index).ms,
-      duration: 300.ms,
-    )
+        .fadeIn(delay: (25 * index).ms, duration: 300.ms)
         .slideX(
-      begin: 0.025,
-      end: 0,
-      delay: (25 * index).ms,
-      duration: 300.ms,
-      curve: Curves.easeOutCubic,
-    );
+          begin: 0.025,
+          end: 0,
+          delay: (25 * index).ms,
+          duration: 300.ms,
+          curve: Curves.easeOutCubic,
+        );
   }
 }
 
@@ -1510,19 +1024,12 @@ class _ResultTile extends StatelessWidget {
 // RECENTLY PLAYED
 // =============================================================================
 
-class _RecentlyPlayedList
-    extends StatelessWidget {
+class _RecentlyPlayedList extends StatelessWidget {
   final List<Song> songs;
 
-  final Future<void> Function(
-      Song,
-      List<Song>,
-      ) onPlay;
+  final Future<void> Function(Song) onPlay;
 
-  final Future<void> Function(
-      Song,
-      List<Song>,
-      ) onMore;
+  final Future<void> Function(Song, List<Song>) onMore;
 
   const _RecentlyPlayedList({
     required this.songs,
@@ -1532,135 +1039,91 @@ class _RecentlyPlayedList
 
   @override
   Widget build(BuildContext context) {
-    final visible =
-    songs.take(8).toList();
+    final visible = songs.take(8).toList();
 
     return SizedBox(
       height: 211.h,
       child: ListView.separated(
-        padding:
-        EdgeInsets.symmetric(
-          horizontal: 22.w,
-        ),
-        scrollDirection:
-        Axis.horizontal,
-        physics:
-        const BouncingScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: 22.w),
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         itemCount: visible.length,
-        separatorBuilder:
-            (context, index) =>
-            SizedBox(width: 12.w),
-        itemBuilder:
-            (context, index) {
+        separatorBuilder: (context, index) => SizedBox(width: 12.w),
+        itemBuilder: (context, index) {
           final song = visible[index];
 
           return GestureDetector(
-            onTap: () =>
-                onPlay(song, visible),
-            child: SizedBox(
-              width: 154.w,
-              child: Column(
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
-                children: [
-                  Stack(
+                onTap: () => onPlay(song),
+                child: SizedBox(
+                  width: 154.w,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ClipRRect(
-                        borderRadius:
-                        BorderRadius.circular(
-                          23.r,
-                        ),
-                        child: SizedBox(
-                          width: 154.w,
-                          height: 154.w,
-                          child: _Artwork(
-                            url: song
-                                .thumbnailUrl,
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(23.r),
+                            child: SizedBox(
+                              width: 154.w,
+                              height: 154.w,
+                              child: _Artwork(url: song.thumbnailUrl),
+                            ),
                           ),
+                          Positioned(
+                            right: 8.w,
+                            bottom: 8.w,
+                            child: GestureDetector(
+                              onTap: () => onMore(song, visible),
+                              child: Container(
+                                width: 36.w,
+                                height: 36.w,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.surface.withValues(alpha: 0.94),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.more_horiz_rounded,
+                                  size: 20.sp,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        song.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Positioned(
-                        right: 8.w,
-                        bottom: 8.w,
-                        child:
-                        GestureDetector(
-                          onTap: () =>
-                              onMore(
-                                song,
-                                visible,
-                              ),
-                          child: Container(
-                            width: 36.w,
-                            height: 36.w,
-                            decoration:
-                            BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              )
-                                  .colorScheme
-                                  .surface
-                                  .withValues(
-                                alpha: 0.94,
-                              ),
-                              shape:
-                              BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons
-                                  .more_horiz_rounded,
-                              size: 20.sp,
-                            ),
-                          ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        song.artist,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: 10.5.sp,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    song.title,
-                    maxLines: 1,
-                    overflow:
-                    TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
-                        ?.copyWith(
-                      fontSize: 13.sp,
-                      fontWeight:
-                      FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    song.artist,
-                    maxLines: 1,
-                    overflow:
-                    TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(
-                      fontSize: 10.5.sp,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
+                ),
+              )
               .animate()
-              .fadeIn(
-            delay: (45 * index).ms,
-            duration: 350.ms,
-          )
+              .fadeIn(delay: (45 * index).ms, duration: 350.ms)
               .slideX(
-            begin: 0.06,
-            end: 0,
-            delay: (45 * index).ms,
-            duration: 350.ms,
-          );
+                begin: 0.06,
+                end: 0,
+                delay: (45 * index).ms,
+                duration: 350.ms,
+              );
         },
       ),
     );
@@ -1677,8 +1140,7 @@ class _MiniPlayer extends StatelessWidget {
   final Duration position;
   final Duration duration;
 
-  final Future<void> Function()
-  onPlayPause;
+  final Future<void> Function() onPlayPause;
 
   final VoidCallback onTap;
   final VoidCallback onMore;
@@ -1700,161 +1162,119 @@ class _MiniPlayer extends StatelessWidget {
     double progress = 0;
 
     if (duration.inMilliseconds > 0) {
-      progress =
-          (position.inMilliseconds /
-              duration.inMilliseconds)
-              .clamp(0.0, 1.0);
+      progress = (position.inMilliseconds / duration.inMilliseconds).clamp(
+        0.0,
+        1.0,
+      );
     }
 
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 68.h,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius:
-          BorderRadius.circular(23.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(
-                alpha:
-                theme.brightness ==
-                    Brightness.dark
-                    ? 0.32
-                    : 0.10,
-              ),
-              blurRadius: 28,
-              offset:
-              const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Row(
-              children: [
-                ClipRRect(
-                  borderRadius:
-                  BorderRadius.circular(
-                    18.r,
+          onTap: onTap,
+          child: Container(
+            height: 68.h,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(23.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(
+                    alpha: theme.brightness == Brightness.dark ? 0.32 : 0.10,
                   ),
-                  child: Container(
-                    width: 56.w,
-                    height: 56.w,
-                    margin:
-                    EdgeInsets.only(
-                      left: 6.w,
-                    ),
-                    child: _Artwork(
-                      url:
-                      song.thumbnailUrl,
-                    ),
-                  ),
+                  blurRadius: 28,
+                  offset: const Offset(0, 8),
                 ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment:
-                    MainAxisAlignment.center,
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        song.title,
-                        maxLines: 1,
-                        overflow:
-                        TextOverflow.ellipsis,
-                        style: theme
-                            .textTheme
-                            .titleSmall
-                            ?.copyWith(
-                          fontSize: 12.5.sp,
-                          fontWeight:
-                          FontWeight.w700,
-                        ),
-                      ),
-                      SizedBox(
-                        height: 2.h,
-                      ),
-                      Text(
-                        song.artist,
-                        maxLines: 1,
-                        overflow:
-                        TextOverflow.ellipsis,
-                        style: theme
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(
-                          fontSize: 10.sp,
-                          color: theme
-                              .colorScheme
-                              .onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: onMore,
-                  icon: Icon(
-                    Icons.more_horiz_rounded,
-                    size: 22.sp,
-                  ),
-                ),
-                IconButton(
-                  onPressed: onPlayPause,
-                  icon: Icon(
-                    isPlaying
-                        ? Icons
-                        .pause_rounded
-                        : Icons
-                        .play_arrow_rounded,
-                    size: 27.sp,
-                  ),
-                ),
-                SizedBox(width: 3.w),
               ],
             ),
-
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: ClipRRect(
-                borderRadius:
-                BorderRadius.vertical(
-                  bottom:
-                  Radius.circular(23.r),
+            child: Stack(
+              children: [
+                Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18.r),
+                      child: Container(
+                        width: 56.w,
+                        height: 56.w,
+                        margin: EdgeInsets.only(left: 6.w),
+                        child: _Artwork(url: song.thumbnailUrl),
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            song.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontSize: 12.5.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            song.artist,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 10.sp,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: onMore,
+                      icon: Icon(Icons.more_horiz_rounded, size: 22.sp),
+                    ),
+                    IconButton(
+                      onPressed: onPlayPause,
+                      icon: Icon(
+                        isPlaying
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        size: 27.sp,
+                      ),
+                    ),
+                    SizedBox(width: 3.w),
+                  ],
                 ),
-                child: Align(
-                  alignment:
-                  Alignment.centerLeft,
-                  child: FractionallySizedBox(
-                    widthFactor: progress,
-                    child: Container(
-                      height: 2.h,
-                      color: theme
-                          .colorScheme
-                          .onSurface,
+
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(23.r),
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: progress,
+                        child: Container(
+                          height: 2.h,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-    )
+          ),
+        )
         .animate()
-        .fadeIn(
-      duration: 250.ms,
-    )
+        .fadeIn(duration: 250.ms)
         .slideY(
-      begin: 0.12,
-      end: 0,
-      duration: 350.ms,
-      curve: Curves.easeOutCubic,
-    );
+          begin: 0.12,
+          end: 0,
+          duration: 350.ms,
+          curve: Curves.easeOutCubic,
+        );
   }
 }
 
@@ -1879,29 +1299,19 @@ class _OptionTile extends StatelessWidget {
 
     return ListTile(
       onTap: onTap,
-      contentPadding:
-      EdgeInsets.symmetric(
-        horizontal: 8.w,
-      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 8.w),
       leading: Container(
         width: 44.w,
         height: 44.w,
         decoration: BoxDecoration(
-          color: theme
-              .scaffoldBackgroundColor,
+          color: theme.scaffoldBackgroundColor,
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          icon,
-          size: 21.sp,
-        ),
+        child: Icon(icon, size: 21.sp),
       ),
       title: Text(
         title,
-        style: theme
-            .textTheme
-            .titleSmall
-            ?.copyWith(
+        style: theme.textTheme.titleSmall?.copyWith(
           fontSize: 14.sp,
           fontWeight: FontWeight.w600,
         ),
@@ -1914,15 +1324,11 @@ class _OptionTile extends StatelessWidget {
 // PLAYLIST OPTION
 // =============================================================================
 
-class _PlaylistOption
-    extends StatelessWidget {
+class _PlaylistOption extends StatelessWidget {
   final Playlist playlist;
   final VoidCallback onTap;
 
-  const _PlaylistOption({
-    required this.playlist,
-    required this.onTap,
-  });
+  const _PlaylistOption({required this.playlist, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1930,79 +1336,42 @@ class _PlaylistOption
 
     return ListTile(
       onTap: onTap,
-      contentPadding:
-      EdgeInsets.symmetric(
-        horizontal: 18.w,
-        vertical: 3.h,
-      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 3.h),
       leading: Container(
         width: 48.w,
         height: 48.w,
         decoration: BoxDecoration(
-          color: theme
-              .scaffoldBackgroundColor,
-          borderRadius:
-          BorderRadius.circular(15.r),
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: BorderRadius.circular(15.r),
         ),
-        child: playlist.artworkUrl !=
-            null &&
-            playlist.artworkUrl!
-                .isNotEmpty
+        child: playlist.artworkUrl != null && playlist.artworkUrl!.isNotEmpty
             ? ClipRRect(
-          borderRadius:
-          BorderRadius.circular(
-            15.r,
-          ),
-          child: Image.network(
-            playlist.artworkUrl!,
-            fit: BoxFit.cover,
-            errorBuilder:
-                (
-                context,
-                error,
-                stackTrace,
-                ) {
-              return Icon(
-                Icons
-                    .queue_music_rounded,
-                size: 21.sp,
-              );
-            },
-          ),
-        )
-            : Icon(
-          Icons.queue_music_rounded,
-          size: 21.sp,
-        ),
+                borderRadius: BorderRadius.circular(15.r),
+                child: Image.network(
+                  playlist.artworkUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.queue_music_rounded, size: 21.sp);
+                  },
+                ),
+              )
+            : Icon(Icons.queue_music_rounded, size: 21.sp),
       ),
       title: Text(
         playlist.name,
         maxLines: 1,
-        overflow:
-        TextOverflow.ellipsis,
-        style: theme
-            .textTheme
-            .titleSmall
-            ?.copyWith(
-          fontWeight:
-          FontWeight.w600,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w600,
         ),
       ),
       subtitle: Text(
         '${playlist.songs.length} songs',
-        style: theme
-            .textTheme
-            .bodySmall
-            ?.copyWith(
-          color: theme
-              .colorScheme
-              .onSurfaceVariant,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
-      trailing: Icon(
-        Icons.add_rounded,
-        size: 21.sp,
-      ),
+      trailing: Icon(Icons.add_rounded, size: 21.sp),
     );
   }
 }
@@ -2011,13 +1380,10 @@ class _PlaylistOption
 // RECENT SEARCH
 // =============================================================================
 
-class _RecentSearchHeader
-    extends StatelessWidget {
+class _RecentSearchHeader extends StatelessWidget {
   final VoidCallback onClear;
 
-  const _RecentSearchHeader({
-    required this.onClear,
-  });
+  const _RecentSearchHeader({required this.onClear});
 
   @override
   Widget build(BuildContext context) {
@@ -2028,13 +1394,9 @@ class _RecentSearchHeader
         Expanded(
           child: Text(
             'Recent searches',
-            style: theme
-                .textTheme
-                .titleLarge
-                ?.copyWith(
+            style: theme.textTheme.titleLarge?.copyWith(
               fontSize: 21.sp,
-              fontWeight:
-              FontWeight.w700,
+              fontWeight: FontWeight.w700,
               letterSpacing: -0.4,
             ),
           ),
@@ -2043,15 +1405,9 @@ class _RecentSearchHeader
           onTap: onClear,
           child: Text(
             'Clear',
-            style: theme
-                .textTheme
-                .bodySmall
-                ?.copyWith(
-              fontWeight:
-              FontWeight.w600,
-              color: theme
-                  .colorScheme
-                  .onSurfaceVariant,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -2078,10 +1434,7 @@ class _HistoryTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding:
-      EdgeInsets.only(
-        bottom: 4.h,
-      ),
+      padding: EdgeInsets.only(bottom: 4.h),
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
@@ -2090,19 +1443,14 @@ class _HistoryTile extends StatelessWidget {
             Container(
               width: 40.w,
               height: 40.w,
-              decoration:
-              BoxDecoration(
-                color: theme
-                    .colorScheme
-                    .surface,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.history_rounded,
                 size: 19.sp,
-                color: theme
-                    .colorScheme
-                    .onSurfaceVariant,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             SizedBox(width: 12.w),
@@ -2110,15 +1458,10 @@ class _HistoryTile extends StatelessWidget {
               child: Text(
                 query,
                 maxLines: 1,
-                overflow:
-                TextOverflow.ellipsis,
-                style: theme
-                    .textTheme
-                    .titleSmall
-                    ?.copyWith(
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleSmall?.copyWith(
                   fontSize: 14.sp,
-                  fontWeight:
-                  FontWeight.w600,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
@@ -2127,20 +1470,13 @@ class _HistoryTile extends StatelessWidget {
               icon: Icon(
                 Icons.close_rounded,
                 size: 18.sp,
-                color: theme
-                    .colorScheme
-                    .onSurfaceVariant,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],
         ),
       ),
-    )
-        .animate()
-        .fadeIn(
-      delay: (index * 35).ms,
-      duration: 280.ms,
-    );
+    ).animate().fadeIn(delay: (index * 35).ms, duration: 280.ms);
   }
 }
 
@@ -2148,13 +1484,10 @@ class _HistoryTile extends StatelessWidget {
 // QUICK SEARCH
 // =============================================================================
 
-class _QuickSearch
-    extends StatelessWidget {
+class _QuickSearch extends StatelessWidget {
   final ValueChanged<String> onTap;
 
-  const _QuickSearch({
-    required this.onTap,
-  });
+  const _QuickSearch({required this.onTap});
 
   static const queries = [
     'Trending music',
@@ -2170,60 +1503,38 @@ class _QuickSearch
     final theme = Theme.of(context);
 
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Quick search',
-          style: theme
-              .textTheme
-              .titleLarge
-              ?.copyWith(
+          style: theme.textTheme.titleLarge?.copyWith(
             fontSize: 21.sp,
-            fontWeight:
-            FontWeight.w700,
+            fontWeight: FontWeight.w700,
           ),
         ),
         SizedBox(height: 12.h),
         Wrap(
           spacing: 8.w,
           runSpacing: 8.h,
-          children: queries.map(
-                (query) {
-              return GestureDetector(
-                onTap: () => onTap(query),
-                child: Container(
-                  padding:
-                  EdgeInsets.symmetric(
-                    horizontal: 15.w,
-                    vertical: 10.h,
-                  ),
-                  decoration:
-                  BoxDecoration(
-                    color: theme
-                        .colorScheme
-                        .surface,
-                    borderRadius:
-                    BorderRadius
-                        .circular(
-                      18.r,
-                    ),
-                  ),
-                  child: Text(
-                    query,
-                    style: theme
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(
-                      fontSize: 12.sp,
-                      fontWeight:
-                      FontWeight.w600,
-                    ),
+          children: queries.map((query) {
+            return GestureDetector(
+              onTap: () => onTap(query),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(18.r),
+                ),
+                child: Text(
+                  query,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              );
-            },
-          ).toList(),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );
@@ -2234,15 +1545,11 @@ class _QuickSearch
 // SECTION HEADER
 // =============================================================================
 
-class _SectionHeader
-    extends StatelessWidget {
+class _SectionHeader extends StatelessWidget {
   final String title;
   final int? count;
 
-  const _SectionHeader({
-    required this.title,
-    this.count,
-  });
+  const _SectionHeader({required this.title, this.count});
 
   @override
   Widget build(BuildContext context) {
@@ -2253,13 +1560,9 @@ class _SectionHeader
         Expanded(
           child: Text(
             title,
-            style: theme
-                .textTheme
-                .titleLarge
-                ?.copyWith(
+            style: theme.textTheme.titleLarge?.copyWith(
               fontSize: 21.sp,
-              fontWeight:
-              FontWeight.w700,
+              fontWeight: FontWeight.w700,
               letterSpacing: -0.4,
             ),
           ),
@@ -2267,13 +1570,8 @@ class _SectionHeader
         if (count != null)
           Text(
             '$count',
-            style: theme
-                .textTheme
-                .bodySmall
-                ?.copyWith(
-              color: theme
-                  .colorScheme
-                  .onSurfaceVariant,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
       ],
@@ -2285,8 +1583,7 @@ class _SectionHeader
 // SEARCHING
 // =============================================================================
 
-class _SearchingIndicator
-    extends StatelessWidget {
+class _SearchingIndicator extends StatelessWidget {
   const _SearchingIndicator();
 
   @override
@@ -2298,24 +1595,16 @@ class _SearchingIndicator
         SizedBox(
           width: 18.w,
           height: 18.w,
-          child:
-          CircularProgressIndicator(
+          child: CircularProgressIndicator(
             strokeWidth: 1.8,
-            color: theme
-                .colorScheme
-                .onSurface,
+            color: theme.colorScheme.onSurface,
           ),
         ),
         SizedBox(width: 10.w),
         Text(
           'Finding music...',
-          style: theme
-              .textTheme
-              .bodyMedium
-              ?.copyWith(
-            color: theme
-                .colorScheme
-                .onSurfaceVariant,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -2327,8 +1616,7 @@ class _SearchingIndicator
 // NO RESULTS
 // =============================================================================
 
-class _NoResults
-    extends StatelessWidget {
+class _NoResults extends StatelessWidget {
   const _NoResults();
 
   @override
@@ -2341,38 +1629,24 @@ class _NoResults
           width: 68.w,
           height: 68.w,
           decoration: BoxDecoration(
-            color: theme
-                .colorScheme
-                .surface,
+            color: theme.colorScheme.surface,
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            Icons.search_off_rounded,
-            size: 29.sp,
-          ),
+          child: Icon(Icons.search_off_rounded, size: 29.sp),
         ),
         SizedBox(height: 16.h),
         Text(
           'Nothing found',
-          style: theme
-              .textTheme
-              .titleLarge
-              ?.copyWith(
-            fontWeight:
-            FontWeight.w700,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w700,
           ),
         ),
         SizedBox(height: 6.h),
         Text(
           'Try another song, artist, or search term.',
           textAlign: TextAlign.center,
-          style: theme
-              .textTheme
-              .bodyMedium
-              ?.copyWith(
-            color: theme
-                .colorScheme
-                .onSurfaceVariant,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ],
@@ -2387,46 +1661,27 @@ class _NoResults
 class _Artwork extends StatelessWidget {
   final String? url;
 
-  const _Artwork({
-    required this.url,
-  });
+  const _Artwork({required this.url});
 
   @override
   Widget build(BuildContext context) {
     if (url == null || url!.isEmpty) {
       return Container(
-        color: Theme.of(context)
-            .colorScheme
-            .surface,
+        color: Theme.of(context).colorScheme.surface,
         alignment: Alignment.center,
-        child: Icon(
-          Icons.music_note_rounded,
-          size: 27.sp,
-        ),
+        child: Icon(Icons.music_note_rounded, size: 27.sp),
       );
     }
 
     return Image.network(
       url!,
       fit: BoxFit.cover,
-      filterQuality:
-      FilterQuality.high,
-      errorBuilder:
-          (
-          context,
-          error,
-          stackTrace,
-          ) {
+      filterQuality: FilterQuality.high,
+      errorBuilder: (context, error, stackTrace) {
         return Container(
-          color: Theme.of(context)
-              .colorScheme
-              .surface,
-          alignment:
-          Alignment.center,
-          child: Icon(
-            Icons.music_note_rounded,
-            size: 27.sp,
-          ),
+          color: Theme.of(context).colorScheme.surface,
+          alignment: Alignment.center,
+          child: Icon(Icons.music_note_rounded, size: 27.sp),
         );
       },
     );

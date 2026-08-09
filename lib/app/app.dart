@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
 import '../data/services/settings_service.dart';
-import '../navigation/bottom_nav.dart';
+import '../features/welcome/splash_screen.dart';
 import 'theme/app_theme.dart';
 
 class ChameleonApp extends StatelessWidget {
@@ -14,25 +13,23 @@ class ChameleonApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: settings,
-      builder: (context, _) {
-        return MaterialApp(
-          title: 'Chameleon',
-          debugShowCheckedModeBanner: false,
+    return MaterialApp(
+      title: 'Chameleon',
 
-          theme: AppTheme.lightTheme,
+      debugShowCheckedModeBanner: false,
 
-          darkTheme: AppTheme.darkTheme,
+      theme:
+      AppTheme.lightTheme,
 
-          // Now controlled by Settings.
-          themeMode: settings.themeMode,
+      darkTheme:
+      AppTheme.darkTheme,
 
-          home: BottomNav(
-            settings: settings,
-          ),
-        );
-      },
+      themeMode:
+      ThemeMode.system,
+
+      home: SplashScreen(
+        settings: settings,
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
 import '../../data/services/settings_service.dart';
 
@@ -1140,8 +1141,7 @@ class _AnimatedSwitchTileState
 // SWITCH
 // =============================================================================
 
-class _AnimatedSwitch
-    extends StatelessWidget {
+class _AnimatedSwitch extends StatelessWidget {
   final bool value;
   final VoidCallback onTap;
 
@@ -1154,95 +1154,32 @@ class _AnimatedSwitch
   Widget build(
       BuildContext context,
       ) {
-    final theme =
-    Theme.of(context);
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
 
-    final appColor =
-        theme.colorScheme.primary;
+    return LiquidGlassToggle(
+      value: value,
 
-    return GestureDetector(
-      onTap: onTap,
+      activeColor: accent,
 
-      child: AnimatedContainer(
-        duration:
-        const Duration(
-          milliseconds: 220,
-        ),
+      onChanged: (_) {
+        onTap();
+      },
 
-        curve:
-        Curves.easeOutCubic,
-
-        width: 52.w,
-        height: 31.h,
-
-        padding:
-        EdgeInsets.all(3.w),
-
-        decoration:
-        BoxDecoration(
-          color: value
-              ? appColor
-              : theme
-              .colorScheme
-              .onSurface
-              .withValues(
-            alpha: 0.10,
-          ),
-
-          borderRadius:
-          BorderRadius.circular(
-            99.r,
+      style: LiquidGlassStyle(
+        shape: LiquidGlassShape.squircle(
+          cornerRadius: 20,
+          borderType: OpticalBorder(
+            borderSaturation: 1.2,
+            ambientIntensity: 1.0,
           ),
         ),
 
-        child: AnimatedAlign(
-          duration:
-          const Duration(
-            milliseconds: 220,
-          ),
-
-          curve:
-          Curves.easeOutBack,
-
-          alignment: value
-              ? Alignment.centerRight
-              : Alignment.centerLeft,
-
-          child: Container(
-            width: 25.w,
-            height: 25.w,
-
-            decoration:
-            const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-
-            child:
-            AnimatedSwitcher(
-              duration:
-              const Duration(
-                milliseconds: 150,
-              ),
-
-              child: value
-                  ? Icon(
-                Icons.check_rounded,
-                key:
-                const ValueKey(
-                  'on',
-                ),
-                size: 15.sp,
-                color:
-                appColor,
-              )
-                  : const SizedBox(
-                key: ValueKey(
-                  'off',
-                ),
-              ),
-            ),
-          ),
+        refraction:
+        const LiquidGlassRefraction(
+          distortion: 0.10,
+          distortionWidth: 20,
+          magnification: 1.04,
         ),
       ),
     );

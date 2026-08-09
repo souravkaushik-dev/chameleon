@@ -1,6 +1,20 @@
 # 🎵 Chameleon
 
-> A cinematic, minimal music player built with Flutter.
+<p align="center">
+  <img src="assets/logo/logo.svg" width="120" alt="Chameleon Logo">
+</p>
+
+<h1 align="center">Chameleon</h1>
+
+<p align="center">
+  A cinematic, minimal music player built with Flutter.
+</p>
+
+<p align="center">
+  <b>Good music, no noise.</b>
+</p>
+
+---
 
 Chameleon is a modern music player focused on **beautiful artwork, smooth interactions, simple controls, and an immersive listening experience**.
 
@@ -134,6 +148,20 @@ Built with a clean, cinematic interface where the music stays at the center.
 
 ---
 
+## 🔔 Lock Screen & Notification
+
+- [x] 🔔 Background playback foundation
+- [x] 🎵 Current song metadata
+- [x] 🖼️ Artwork support
+- [x] ⏯️ Play / pause control
+- [x] ⏮️ Previous control
+- [ ] ⏭️ Next control reliability — **bug fixes pending**
+- [ ] 📋 Queue synchronization — **bug fixes pending**
+- [ ] 🔄 Automatic next-track control — **under development**
+- [ ] 🎚️ Advanced system media controls — **coming soon**
+
+---
+
 ## ⚙️ Settings
 
 - [x] ☀️ Light theme
@@ -146,7 +174,21 @@ Built with a clean, cinematic interface where the music stays at the center.
 - [x] ❤️ Clear liked songs
 - [x] 📚 Manage library data
 
-Only functional settings are included.
+### 🚧 Settings Coming Soon
+
+The Settings section is still being expanded.
+
+- [ ] 🎧 Advanced playback settings
+- [ ] 🎚️ Audio preferences
+- [ ] 📋 Queue preferences
+- [ ] 🔔 Notification preferences
+- [ ] 🔒 Lock-screen preferences
+- [ ] 🎨 More appearance customization
+- [ ] ✨ Animation preferences
+- [ ] 🧹 Cache management
+- [ ] 🔊 Additional audio controls
+- [ ] ⚡ Performance options
+- [ ] 🧩 More personalization options
 
 ---
 
@@ -192,6 +234,8 @@ The following areas are currently being improved:
 - [ ] 🔄 **Automatic next song** — transition between tracks needs work.
 - [ ] ⚡ **Song startup speed** — some songs may take longer to start.
 - [ ] 🎵 **Playback stability** — some playback edge cases remain.
+- [ ] 🔔 **Notification controls** — system playback integration is still being polished.
+- [ ] 🔒 **Lock-screen controls** — synchronization improvements are pending.
 - [ ] 🐞 **General bugs** — additional bugs are being identified and fixed.
 - [ ] 🚀 **Performance** — further optimization is planned.
 
@@ -211,13 +255,40 @@ The following areas are currently being improved:
 - [ ] ⚡ Further playback optimization
 - [ ] 🔄 Improved queue system
 - [ ] ⏭️ Improved next-track system
+- [ ] 🔔 Improved notification controls
+- [ ] 🔒 Improved lock-screen experience
+- [ ] 🎵 Smarter playback behavior
+- [ ] 🎨 More personalization
+
+---
+
+## 🔮 Future Ideas
+
+These are ideas being considered for future versions:
+
+- [ ] 🎤 Lyrics
+- [ ] 👤 Artist pages
+- [ ] 💿 Album pages
+- [ ] 📻 Automatic radio
+- [ ] 🧠 Smart recommendations
+- [ ] 🎶 Smart queue
+- [ ] 😴 Sleep timer
+- [ ] 🔀 Crossfade
+- [ ] 🎚️ Equalizer
+- [ ] ⏩ Playback speed
+- [ ] 📊 Advanced listening statistics
+- [ ] 🔗 Playlist sharing
+- [ ] 🎵 Music sharing
+- [ ] 🎨 More dynamic player themes
+
+> Future ideas are subject to change and are not guaranteed features.
 
 ---
 
 ## 🗺️ Roadmap
 
 | Feature | Status |
-|---|---|
+| -------------------------- | --------------------------------- |
 | Music playback | 🟡 Working — improvements pending |
 | Play / Pause | ✅ Done |
 | Previous song | ✅ Done |
@@ -234,13 +305,16 @@ The following areas are currently being improved:
 | Search | ✅ Done |
 | Search history | ✅ Done |
 | Library | ✅ Done |
-| Settings | ✅ Done |
+| Settings foundation | ✅ Done |
+| Advanced Settings | 🚧 Coming Soon |
 | Light theme | ✅ Done |
 | Dark theme | ✅ Done |
 | Liquid glass navigation | ✅ Done |
 | Glass magnification | ✅ Done |
 | Glass refraction | ✅ Done |
 | Jelly navigation animation | ✅ Done |
+| Lock-screen controls | 🚧 Improvements pending |
+| Notification controls | 🚧 Improvements pending |
 | Offline playback | 🚧 Coming Soon |
 | Advanced audio controls | 🚧 Coming Soon |
 | Listening statistics | 🚧 Coming Soon |
@@ -253,9 +327,15 @@ The following areas are currently being improved:
 - Flutter
 - Dart
 - Material Design
-- Shared Preferences
-- Local Storage
-- Liquid Glass UI
+- `just_audio`
+- `audio_service`
+- `youtube_explode_dart`
+- `shared_preferences`
+- `flutter_screenutil_plus`
+- `liquid_glass_easy`
+- `flutter_animate`
+- `flutter_hicons`
+- `flutter_svg`
 
 ---
 
@@ -272,6 +352,16 @@ The following areas are currently being improved:
 ---
 
 ## 🚀 Getting Started
+
+### Prerequisites
+
+Make sure you have:
+
+- Flutter SDK
+- Dart SDK
+- Android Studio
+- Android SDK
+- A connected Android device or emulator
 
 ### Clone
 

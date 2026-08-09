@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_hicons/flutter_hicons.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 import '../../data/models/playlist.dart';
@@ -61,391 +62,376 @@ class _HomeScreenState extends State<HomeScreen> {
         return Scaffold(
           backgroundColor:
           theme.scaffoldBackgroundColor,
-          body: Stack(
-            children: [
-              SafeArea(
-                bottom: false,
-                child: RefreshIndicator(
-                  onRefresh: _refresh,
-                  color: theme.colorScheme.onSurface,
-                  backgroundColor:
-                  theme.colorScheme.surface,
-                  displacement: 28.h,
-                  child: CustomScrollView(
-                    physics:
-                    const BouncingScrollPhysics(
-                      parent:
-                      AlwaysScrollableScrollPhysics(),
+          body: SafeArea(
+            bottom: false,
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              color: theme.colorScheme.onSurface,
+              backgroundColor:
+              theme.colorScheme.surface,
+              displacement: 28.h,
+              child: CustomScrollView(
+                physics:
+                const BouncingScrollPhysics(
+                  parent:
+                  AlwaysScrollableScrollPhysics(),
+                ),
+                slivers: [
+                  // ===========================================================
+                  // HEADER
+                  // ===========================================================
+
+                  SliverPadding(
+                    padding: EdgeInsets.fromLTRB(
+                      22.w,
+                      18.h,
+                      22.w,
+                      0,
                     ),
-                    slivers: [
-                      // ===========================================================
-                      // HEADER
-                      // ===========================================================
-
-                      SliverPadding(
-                        padding: EdgeInsets.fromLTRB(
-                          22.w,
-                          18.h,
-                          22.w,
-                          0,
-                        ),
-                        sliver: SliverToBoxAdapter(
-                          child: _Header(
-                            onSearch: _openSearch,
-                          )
-                              .animate()
-                              .fadeIn(
-                            duration: 400.ms,
-                          )
-                              .slideY(
-                            begin: 0.04,
-                            end: 0,
-                            duration: 400.ms,
-                            curve:
-                            Curves.easeOutCubic,
-                          ),
-                        ),
+                    sliver: SliverToBoxAdapter(
+                      child: _Header(
+                        onSearch: _openSearch,
+                      )
+                          .animate()
+                          .fadeIn(
+                        duration: 400.ms,
+                      )
+                          .slideY(
+                        begin: 0.04,
+                        end: 0,
+                        duration: 400.ms,
+                        curve:
+                        Curves.easeOutCubic,
                       ),
+                    ),
+                  ),
 
-                      // ===========================================================
-                      // LOADING
-                      // ===========================================================
+                  // ===========================================================
+                  // LOADING
+                  // ===========================================================
 
-                      if (controller.isHomeLoading)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                            22.w,
-                            12.h,
-                            22.w,
-                            0,
-                          ),
-                          sliver:
-                          const SliverToBoxAdapter(
-                            child:
-                            _LoadingIndicator(),
-                          ),
-                        ),
+                  if (controller.isHomeLoading)
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        22.w,
+                        12.h,
+                        22.w,
+                        0,
+                      ),
+                      sliver:
+                      const SliverToBoxAdapter(
+                        child:
+                        _LoadingIndicator(),
+                      ),
+                    ),
 
-                      // ===========================================================
-                      // ERROR
-                      // ===========================================================
+                  // ===========================================================
+                  // ERROR
+                  // ===========================================================
 
-                      if (controller.errorMessage !=
-                          null &&
-                          !controller.isHomeLoading)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                            22.w,
-                            12.h,
-                            22.w,
-                            0,
-                          ),
-                          sliver:
-                          SliverToBoxAdapter(
-                            child: _ErrorPill(
-                              message: controller
-                                  .errorMessage!,
-                            ),
-                          ),
-                        ),
-
-                      // ===========================================================
-                      // RECENTLY PLAYED — APPLE MUSIC STYLE
-                      // ===========================================================
-
-                      if (controller.recentlyPlayed.isNotEmpty)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                            22.w,
-                            22.h,
-                            0,
-                            0,
-                          ),
-                          sliver:
-                          const SliverToBoxAdapter(
-                            child: _SectionTitle(
-                              title: 'Recently played',
-                              subtitle:
-                              'Pick up where you left off',
-                            ),
-                          ),
-                        ),
-
-                      if (controller.recentlyPlayed.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              top: 12.h,
-                            ),
-                            child: _RecentlyPlayedList(
-                              songs:
-                              controller.recentlyPlayed,
-                            ),
-                          ),
-                        ),
-
-                      // ===========================================================
-                      // TRENDING
-                      // ===========================================================
-
-                      if (controller
-                          .trendingSongs.isNotEmpty)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                            22.w,
-                            28.h,
-                            0,
-                            0,
-                          ),
-                          sliver:
-                          const SliverToBoxAdapter(
-                            child: _SectionTitle(
-                              title: 'Trending now',
-                              subtitle:
-                              'Fresh from YouTube',
-                            ),
-                          ),
-                        ),
-
-                      if (controller
-                          .trendingSongs.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              top: 10.h,
-                            ),
-                            child: _TrendingList(
-                              songs:
-                              controller.trendingSongs,
-                            ),
-                          ),
-                        ),
-
-                      // ===========================================================
-                      // ARTISTS
-                      // ===========================================================
-
-                      if (controller
-                          .trendingArtists.isNotEmpty)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                            22.w,
-                            24.h,
-                            0,
-                            0,
-                          ),
-                          sliver:
-                          const SliverToBoxAdapter(
-                            child: _SectionTitle(
-                              title:
-                              'Trending artists',
-                              subtitle:
-                              'From your current feed',
-                            ),
-                          ),
-                        ),
-
-                      if (controller
-                          .trendingArtists.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              top: 9.h,
-                            ),
-                            child: _ArtistList(
-                              artists: controller
-                                  .trendingArtists,
-                              onArtistTap: (artist) {
-                                _openSearch(
-                                  initialQuery: artist,
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-
-                      // ===========================================================
-                      // SUGGESTED
-                      // ===========================================================
-
-                      if (controller
-                          .suggestedSongs.isNotEmpty)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                            22.w,
-                            26.h,
-                            22.w,
-                            0,
-                          ),
-                          sliver:
-                          const SliverToBoxAdapter(
-                            child: _SectionTitle(
-                              title:
-                              'Suggested for you',
-                              subtitle:
-                              'More music to explore',
-                            ),
-                          ),
-                        ),
-
-                      if (controller
-                          .suggestedSongs.isNotEmpty)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                            22.w,
-                            10.h,
-                            22.w,
-                            0,
-                          ),
-                          sliver: SliverList.builder(
-                            itemCount: controller
-                                .suggestedSongs.length,
-                            itemBuilder:
-                                (context, index) {
-                              final song = controller
-                                  .suggestedSongs[index];
-
-                              return Padding(
-                                padding:
-                                EdgeInsets.only(
-                                  bottom: 7.h,
-                                ),
-                                child: _SongTile(
-                                  song: song,
-                                  index: index,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-
-                      // ===========================================================
-                      // PLAYLISTS
-                      // ===========================================================
-
-                      if (controller
-                          .playlists.isNotEmpty)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                            22.w,
-                            26.h,
-                            0,
-                            0,
-                          ),
-                          sliver:
-                          const SliverToBoxAdapter(
-                            child: _SectionTitle(
-                              title:
-                              'Your playlists',
-                            ),
-                          ),
-                        ),
-
-                      if (controller
-                          .playlists.isNotEmpty)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              top: 10.h,
-                            ),
-                            child: _PlaylistList(
-                              playlists:
-                              controller.playlists,
-                            ),
-                          ),
-                        ),
-
-                      // ===========================================================
-                      // FAVORITES
-                      // ===========================================================
-
-                      if (controller
-                          .favorites.isNotEmpty)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                            22.w,
-                            26.h,
-                            22.w,
-                            0,
-                          ),
-                          sliver:
-                          const SliverToBoxAdapter(
-                            child: _SectionTitle(
-                              title:
-                              'Your favorites',
-                            ),
-                          ),
-                        ),
-
-                      if (controller
-                          .favorites.isNotEmpty)
-                        SliverPadding(
-                          padding: EdgeInsets.fromLTRB(
-                            22.w,
-                            10.h,
-                            22.w,
-                            0,
-                          ),
-                          sliver: SliverList.builder(
-                            itemCount:
-                            controller.favorites.length,
-                            itemBuilder:
-                                (context, index) {
-                              return Padding(
-                                padding:
-                                EdgeInsets.only(
-                                  bottom: 7.h,
-                                ),
-                                child: _SongTile(
-                                  song: controller
-                                      .favorites[index],
-                                  index: index,
-                                  favorite: true,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-
-                      // ===========================================================
-                      // EMPTY
-                      // ===========================================================
-
-                      if (!controller.isHomeLoading &&
-                          controller
-                              .trendingSongs.isEmpty &&
-                          controller
-                              .suggestedSongs.isEmpty &&
-                          controller
-                              .recentlyPlayed.isEmpty &&
-                          controller.favorites.isEmpty &&
-                          controller.playlists.isEmpty)
-                        const SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: _EmptyHome(),
-                        ),
-
+                  if (controller.errorMessage !=
+                      null &&
+                      !controller.isHomeLoading)
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        22.w,
+                        12.h,
+                        22.w,
+                        0,
+                      ),
+                      sliver:
                       SliverToBoxAdapter(
-                        child: SizedBox(
-                          height: 150.h,
+                        child: _ErrorPill(
+                          message: controller
+                              .errorMessage!,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
 
-              if (controller.currentSong != null)
-                Positioned(
-                  left: 12.w,
-                  right: 12.w,
-                  bottom: 10.h,
-                  child: _MiniPlayer(
-                    controller: controller,
-                    onOpen: () => _openNowPlaying(context),
+                  // ===========================================================
+                  // RECENTLY PLAYED — APPLE MUSIC STYLE
+                  // ===========================================================
+
+                  if (controller.recentlyPlayed.isNotEmpty)
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        22.w,
+                        22.h,
+                        0,
+                        0,
+                      ),
+                      sliver:
+                      const SliverToBoxAdapter(
+                        child: _SectionTitle(
+                          title: 'Recently played',
+                          subtitle:
+                          'Pick up where you left off',
+                        ),
+                      ),
+                    ),
+
+                  if (controller.recentlyPlayed.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: 12.h,
+                        ),
+                        child: _RecentlyPlayedList(
+                          songs:
+                          controller.recentlyPlayed,
+                        ),
+                      ),
+                    ),
+
+                  // ===========================================================
+                  // TRENDING
+                  // ===========================================================
+
+                  if (controller
+                      .trendingSongs.isNotEmpty)
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        22.w,
+                        28.h,
+                        0,
+                        0,
+                      ),
+                      sliver:
+                      const SliverToBoxAdapter(
+                        child: _SectionTitle(
+                          title: 'Trending now',
+                          subtitle:
+                          'Fresh from YouTube',
+                        ),
+                      ),
+                    ),
+
+                  if (controller
+                      .trendingSongs.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: 10.h,
+                        ),
+                        child: _TrendingList(
+                          songs:
+                          controller.trendingSongs,
+                        ),
+                      ),
+                    ),
+
+                  // ===========================================================
+                  // ARTISTS
+                  // ===========================================================
+
+                  if (controller
+                      .trendingArtists.isNotEmpty)
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        22.w,
+                        24.h,
+                        0,
+                        0,
+                      ),
+                      sliver:
+                      const SliverToBoxAdapter(
+                        child: _SectionTitle(
+                          title:
+                          'Trending ',
+                          subtitle:
+                          'From your current feed',
+                        ),
+                      ),
+                    ),
+
+                  if (controller
+                      .trendingArtists.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: 9.h,
+                        ),
+                        child: _ArtistList(
+                          artists: controller
+                              .trendingArtists,
+                          onArtistTap: (artist) {
+                            _openSearch(
+                              initialQuery: artist,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                  // ===========================================================
+                  // SUGGESTED
+                  // ===========================================================
+
+                  if (controller
+                      .suggestedSongs.isNotEmpty)
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        22.w,
+                        26.h,
+                        22.w,
+                        0,
+                      ),
+                      sliver:
+                      const SliverToBoxAdapter(
+                        child: _SectionTitle(
+                          title:
+                          'Suggested for you',
+                          subtitle:
+                          'More music to explore',
+                        ),
+                      ),
+                    ),
+
+                  if (controller
+                      .suggestedSongs.isNotEmpty)
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        22.w,
+                        10.h,
+                        22.w,
+                        0,
+                      ),
+                      sliver: SliverList.builder(
+                        itemCount: controller
+                            .suggestedSongs.length,
+                        itemBuilder:
+                            (context, index) {
+                          final song = controller
+                              .suggestedSongs[index];
+
+                          return Padding(
+                            padding:
+                            EdgeInsets.only(
+                              bottom: 7.h,
+                            ),
+                            child: _SongTile(
+                              song: song,
+                              index: index,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                  // ===========================================================
+                  // PLAYLISTS
+                  // ===========================================================
+
+                  if (controller
+                      .playlists.isNotEmpty)
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        22.w,
+                        26.h,
+                        0,
+                        0,
+                      ),
+                      sliver:
+                      const SliverToBoxAdapter(
+                        child: _SectionTitle(
+                          title:
+                          'Your playlists',
+                        ),
+                      ),
+                    ),
+
+                  if (controller
+                      .playlists.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: 10.h,
+                        ),
+                        child: _PlaylistList(
+                          playlists:
+                          controller.playlists,
+                        ),
+                      ),
+                    ),
+
+                  // ===========================================================
+                  // FAVORITES
+                  // ===========================================================
+
+                  if (controller
+                      .favorites.isNotEmpty)
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        22.w,
+                        26.h,
+                        22.w,
+                        0,
+                      ),
+                      sliver:
+                      const SliverToBoxAdapter(
+                        child: _SectionTitle(
+                          title:
+                          'Your favorites',
+                        ),
+                      ),
+                    ),
+
+                  if (controller
+                      .favorites.isNotEmpty)
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        22.w,
+                        10.h,
+                        22.w,
+                        0,
+                      ),
+                      sliver: SliverList.builder(
+                        itemCount:
+                        controller.favorites.length,
+                        itemBuilder:
+                            (context, index) {
+                          return Padding(
+                            padding:
+                            EdgeInsets.only(
+                              bottom: 7.h,
+                            ),
+                            child: _SongTile(
+                              song: controller
+                                  .favorites[index],
+                              index: index,
+                              favorite: true,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                  // ===========================================================
+                  // EMPTY
+                  // ===========================================================
+
+                  if (!controller.isHomeLoading &&
+                      controller
+                          .trendingSongs.isEmpty &&
+                      controller
+                          .suggestedSongs.isEmpty &&
+                      controller
+                          .recentlyPlayed.isEmpty &&
+                      controller.favorites.isEmpty &&
+                      controller.playlists.isEmpty)
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _EmptyHome(),
+                    ),
+
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 150.h,
+                    ),
                   ),
-                ),
-            ],
+                ],
+              ),
+            ),
           ),
         );
       },
@@ -534,6 +520,414 @@ Future<void> _playAndOpenNowPlaying(
   );
 }
 
+
+// =============================================================================
+// SONG ACTIONS
+// =============================================================================
+
+Future<void> _showSongOptions(
+    BuildContext context,
+    Song song, {
+      List<Song>? queue,
+    }) async {
+  final controller = MusicControllerProvider.instance;
+  final theme = Theme.of(context);
+
+  await showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (sheetContext) {
+      final isFavorite = controller.isFavorite(song);
+
+      return SafeArea(
+        child: Container(
+          margin: EdgeInsets.fromLTRB(10.w, 0, 10.w, 10.h),
+          padding: EdgeInsets.fromLTRB(8.w, 8.h, 8.w, 8.h),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(30.r),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36.w,
+                height: 4.h,
+                margin: EdgeInsets.only(bottom: 10.h),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(99.r),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(10.w, 4.h, 10.w, 12.h),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(13.r),
+                      child: SizedBox(
+                        width: 52.w,
+                        height: 52.w,
+                        child: _Artwork(
+                          url: song.thumbnailUrl,
+                          cropBlackBars: true,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            song.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(height: 3.h),
+                          Text(
+                            song.artist,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _OptionTile(
+                icon: isFavorite
+                    ? Hicons.heart1Bold
+                    : Hicons.heart1LightOutline,
+                title: isFavorite ? 'Unlike' : 'Like',
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  await controller.toggleFavorite(song);
+                  _showHomeMessage(
+                    context,
+                    isFavorite
+                        ? 'Removed from favorites'
+                        : 'Added to favorites',
+                  );
+                },
+              ),
+              _OptionTile(
+                icon: Icons.queue_music_rounded,
+                title: 'Add to queue',
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  controller.addToQueue(song);
+                  _showHomeMessage(context, 'Added to queue');
+                },
+              ),
+              _OptionTile(
+                icon: Icons.playlist_add_rounded,
+                title: 'Add to playlist',
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  await _showHomePlaylistPicker(context, song);
+                },
+              ),
+              _OptionTile(
+                icon: Icons.play_arrow_rounded,
+                title: 'Play now',
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  await _playAndOpenNowPlaying(
+                    context,
+                    song: song,
+                    sourceQueue: queue,
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Future<void> _showHomePlaylistPicker(
+    BuildContext context,
+    Song song,
+    ) async {
+  final controller = MusicControllerProvider.instance;
+  final playlists = controller.playlists;
+
+  if (playlists.isEmpty) {
+    await _showHomeCreatePlaylistForSong(context, song);
+    return;
+  }
+
+  if (!context.mounted) return;
+
+  final theme = Theme.of(context);
+
+  await showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (sheetContext) {
+      return SafeArea(
+        child: Container(
+          constraints: BoxConstraints(maxHeight: 0.72.sh),
+          margin: EdgeInsets.fromLTRB(10.w, 0, 10.w, 10.h),
+          padding: EdgeInsets.only(top: 8.h, bottom: 8.h),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(30.r),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 36.w,
+                height: 4.h,
+                margin: EdgeInsets.only(bottom: 14.h),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(99.r),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Add to playlist',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(sheetContext);
+                        _showHomeCreatePlaylistForSong(context, song);
+                      },
+                      icon: const Icon(Icons.add_rounded),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 4.h),
+              Expanded(
+                child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: playlists.length,
+                  itemBuilder: (context, index) {
+                    final playlist = playlists[index];
+
+                    return _PlaylistOption(
+                      playlist: playlist,
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+                        await controller.addToPlaylist(
+                          playlist.id,
+                          song,
+                        );
+                        if (context.mounted) {
+                          _showHomeMessage(
+                            context,
+                            'Added to ${playlist.name}',
+                          );
+                        }
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Future<void> _showHomeCreatePlaylistForSong(
+    BuildContext context,
+    Song song,
+    ) async {
+  final controller = MusicControllerProvider.instance;
+  final nameController = TextEditingController();
+
+  final name = await showDialog<String>(
+    context: context,
+    builder: (dialogContext) {
+      final theme = Theme.of(dialogContext);
+
+      return AlertDialog(
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28.r),
+        ),
+        title: const Text('New playlist'),
+        content: TextField(
+          controller: nameController,
+          autofocus: true,
+          textInputAction: TextInputAction.done,
+          decoration: const InputDecoration(
+            hintText: 'Playlist name',
+            border: InputBorder.none,
+          ),
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              Navigator.pop(dialogContext, value.trim());
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = nameController.text.trim();
+              if (value.isEmpty) return;
+              Navigator.pop(dialogContext, value);
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      );
+    },
+  );
+
+  nameController.dispose();
+
+  if (name == null || name.trim().isEmpty) return;
+
+  await controller.createPlaylist(name: name.trim());
+
+  final playlists = controller.playlists;
+  if (playlists.isEmpty) return;
+
+  final created = playlists.last;
+
+  await controller.addToPlaylist(created.id, song);
+
+  if (context.mounted) {
+    _showHomeMessage(context, 'Created ${created.name}');
+  }
+}
+
+void _showHomeMessage(BuildContext context, String message) {
+  if (!context.mounted) return;
+
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.fromLTRB(18.w, 0, 18.w, 24.h),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18.r),
+        ),
+      ),
+    );
+}
+
+class _OptionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  const _OptionTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ListTile(
+      onTap: onTap,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: 10.w,
+        vertical: 2.h,
+      ),
+      leading: Container(
+        width: 42.w,
+        height: 42.w,
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, size: 21.sp),
+      ),
+      title: Text(
+        title,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _PlaylistOption extends StatelessWidget {
+  final Playlist playlist;
+  final VoidCallback onTap;
+
+  const _PlaylistOption({
+    required this.playlist,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final songs = playlist.songs;
+
+    return ListTile(
+      onTap: onTap,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: 18.w,
+        vertical: 3.h,
+      ),
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(12.r),
+        child: SizedBox(
+          width: 52.w,
+          height: 52.w,
+          child: _PlaylistArtwork(songs: songs),
+        ),
+      ),
+      title: Text(
+        playlist.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      subtitle: Text(
+        '${songs.length} ${songs.length == 1 ? 'song' : 'songs'}',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
 // =============================================================================
 // HEADER
 // =============================================================================
@@ -603,7 +997,7 @@ class _Header extends StatelessWidget {
               ),
             ),
             child: Icon(
-              Icons.search_rounded,
+              Hicons.search1LightOutline,
               size: 26.sp,
               color:
               theme.colorScheme.onSurface,
@@ -756,6 +1150,11 @@ class _RecentlyPlayedCard extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => _play(context),
+      onLongPress: () => _showSongOptions(
+        context,
+        song,
+        queue: songs,
+      ),
       child: SizedBox(
         width: 236.w,
         child: Column(
@@ -789,6 +1188,30 @@ class _RecentlyPlayedCard extends StatelessWidget {
                       ),
                     ),
                     Positioned(
+                      top: 14.w,
+                      right: 14.w,
+                      child: GestureDetector(
+                        onTap: () => _showSongOptions(
+                          context,
+                          song,
+                          queue: songs,
+                        ),
+                        child: Container(
+                          width: 42.w,
+                          height: 42.w,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.48),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.more_horiz_rounded,
+                            color: Colors.white,
+                            size: 22.sp,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
                       right: 14.w,
                       bottom: 14.w,
                       child: Container(
@@ -799,7 +1222,7 @@ class _RecentlyPlayedCard extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          Icons.play_arrow_rounded,
+                          Hicons.playLightOutline,
                           color: Colors.black,
                           size: 28.sp,
                         ),
@@ -848,220 +1271,6 @@ class _RecentlyPlayedCard extends StatelessWidget {
       curve: Curves.easeOutCubic,
     );
   }
-}
-
-// =============================================================================
-// MINI PLAYER
-// =============================================================================
-
-class _MiniPlayer extends StatelessWidget {
-  final MusicController controller;
-  final VoidCallback onOpen;
-
-  const _MiniPlayer({
-    required this.controller,
-    required this.onOpen,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final playback = controller.playbackState;
-    final song = playback.currentSong ?? controller.currentSong;
-
-    if (song == null) {
-      return const SizedBox.shrink();
-    }
-
-    final duration = playback.duration;
-    final position = playback.position;
-
-    final totalMs = duration.inMilliseconds;
-    final positionMs = position.inMilliseconds;
-    final progress = totalMs <= 0
-        ? 0.0
-        : (positionMs / totalMs).clamp(0.0, 1.0);
-
-    return Material(
-      color: Colors.transparent,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onOpen,
-        child: Container(
-          height: 72.h,
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(24.r),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-                color: Colors.black.withValues(alpha: 0.12),
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              Row(
-                children: [
-                  SizedBox(width: 6.w),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(19.r),
-                    child: SizedBox(
-                      width: 60.w,
-                      height: 60.w,
-                      child: _Artwork(
-                        url: song.thumbnailUrl,
-                        cropBlackBars: true,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 11.w),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          song.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        SizedBox(height: 2.h),
-                        Text(
-                          song.artist,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontSize: 10.5.sp,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: 'Open player',
-                    onPressed: onOpen,
-                    icon: Icon(
-                      Icons.keyboard_arrow_up_rounded,
-                      size: 24.sp,
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: playback.isPlaying ? 'Pause' : 'Play',
-                    onPressed: () async {
-                      await controller.togglePlayPause();
-                    },
-                    icon: Icon(
-                      playback.isPlaying
-                          ? Icons.pause_rounded
-                          : Icons.play_arrow_rounded,
-                      size: 27.sp,
-                    ),
-                  ),
-                  SizedBox(width: 3.w),
-                ],
-              ),
-              Positioned(
-                left: 6.w,
-                right: 6.w,
-                bottom: 0,
-                child: SizedBox(
-                  height: 2.5.h,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: Container(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.08,
-                          ),
-                        ),
-                      ),
-                      FractionallySizedBox(
-                        widthFactor: progress,
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.onSurface,
-                            borderRadius: BorderRadius.circular(99.r),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    )
-        .animate()
-        .fadeIn(duration: 220.ms)
-        .slideY(
-      begin: 0.12,
-      end: 0,
-      duration: 280.ms,
-      curve: Curves.easeOutCubic,
-    );
-  }
-}
-
-// =============================================================================
-// OPEN NOW PLAYING FROM MINI PLAYER
-// =============================================================================
-
-Future<void> _openNowPlaying(BuildContext context) async {
-  if (!context.mounted) {
-    return;
-  }
-
-  final navigator = Navigator.of(
-    context,
-    rootNavigator: true,
-  );
-
-  navigator.push(
-    PageRouteBuilder<void>(
-      transitionDuration: const Duration(milliseconds: 420),
-      reverseTransitionDuration: const Duration(milliseconds: 320),
-      pageBuilder: (
-          context,
-          animation,
-          secondaryAnimation,
-          ) {
-        return const NowPlayingScreen();
-      },
-      transitionsBuilder: (
-          context,
-          animation,
-          secondaryAnimation,
-          child,
-          ) {
-        final curved = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-
-        return FadeTransition(
-          opacity: curved,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.035),
-              end: Offset.zero,
-            ).animate(curved),
-            child: child,
-          ),
-        );
-      },
-    ),
-  );
 }
 
 // =============================================================================
@@ -1143,6 +1352,11 @@ class _TrendingCard
       behavior:
       HitTestBehavior.opaque,
       onTap: () => _play(context),
+      onLongPress: () => _showSongOptions(
+        context,
+        song,
+        queue: MusicControllerProvider.instance.trendingSongs,
+      ),
       child: SizedBox(
         width: 158.w,
         child: Column(
@@ -1157,9 +1371,38 @@ class _TrendingCard
               child: SizedBox(
                 width: 158.w,
                 height: 158.w,
-                child: _Artwork(
-                  url: song.thumbnailUrl,
-                  cropBlackBars: true,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _Artwork(
+                      url: song.thumbnailUrl,
+                      cropBlackBars: true,
+                    ),
+                    Positioned(
+                      top: 10.w,
+                      right: 10.w,
+                      child: GestureDetector(
+                        onTap: () => _showSongOptions(
+                          context,
+                          song,
+                          queue: MusicControllerProvider.instance.trendingSongs,
+                        ),
+                        child: Container(
+                          width: 40.w,
+                          height: 40.w,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.48),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.more_horiz_rounded,
+                            color: Colors.white,
+                            size: 21.sp,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1377,6 +1620,7 @@ class _SongTile
           song: song,
         );
       },
+      onLongPress: () => _showSongOptions(context, song),
       child: Container(
         padding:
         EdgeInsets.all(8.w),
@@ -1485,8 +1729,8 @@ class _SongTile
             SizedBox(width: 6.w),
             Icon(
               favorite
-                  ? Icons
-                  .favorite_rounded
+                  ? Hicons
+                  .heart1LightOutline
                   : Icons
                   .more_horiz_rounded,
               size: favorite
@@ -1817,7 +2061,7 @@ class _EmptyArtwork
       alignment:
       Alignment.center,
       child: Icon(
-        Icons.music_note_rounded,
+        Hicons.musicnoteLightOutline,
         size: 34.sp,
         color: theme.colorScheme
             .onSurfaceVariant,
@@ -1905,7 +2149,7 @@ class _ErrorPill
       child: Row(
         children: [
           Icon(
-            Icons.info_outline_rounded,
+            Hicons.informationCircleBold,
             size: 17.sp,
           ),
           SizedBox(width: 8.w),
@@ -1960,7 +2204,7 @@ class _EmptyHome
                 BoxShape.circle,
               ),
               child: Icon(
-                Icons.music_note_rounded,
+                Hicons.musicnoteLightOutline,
                 size: 30.sp,
               ),
             ),
@@ -2189,8 +2433,8 @@ class _SearchSheetState
                             width: 17.w,
                           ),
                           Icon(
-                            Icons
-                                .search_rounded,
+                            Hicons
+                                .search1LightOutline,
                             size: 23.sp,
                             color: theme
                                 .colorScheme
@@ -2283,8 +2527,8 @@ class _SearchSheetState
                                 ),
                                 child:
                                 Icon(
-                                  Icons
-                                      .close_rounded,
+                                  Hicons
+                                      .closeLightOutline,
                                   size: 17.sp,
                                 ),
                               ),
@@ -2408,8 +2652,8 @@ class _SearchResults
                       BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons
-                          .music_note_rounded,
+                      Hicons
+                          .musicnoteLightOutline,
                       size: 30.sp,
                     ),
                   ),
@@ -2625,3 +2869,4 @@ class _SearchResultTile
     );
   }
 }
+

@@ -1,0 +1,39 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" color="#1B4B43">
+  <defs>
+    <mask id="holes" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <rect x="0" y="0" width="512" height="512" fill="white"/>
+      <!-- eye pupil cutout -->
+      <circle cx="163" cy="225" r="10" fill="black"/>
+      <!-- play triangle cutout -->
+      <path d="M338,212 L338,238 L360,225 Z" fill="black"/>
+    </mask>
+  </defs>
+
+  <g fill="currentColor" mask="url(#holes)">
+    <!-- legs -->
+    <rect x="170" y="355" width="18" height="46" rx="9" transform="rotate(20 179 355)"/>
+    <rect x="266" y="360" width="18" height="48" rx="9" transform="rotate(-15 275 360)"/>
+
+    <!-- body -->
+    <ellipse cx="230" cy="300" rx="100" ry="72" transform="rotate(-12 230 300)"/>
+
+    <!-- head -->
+    <circle cx="150" cy="245" r="58"/>
+    <ellipse cx="98" cy="252" rx="28" ry="20" transform="rotate(-10 98 252)"/>
+
+    <!-- head crest -->
+    <path d="M148,188 L128,212 L172,210 Z"/>
+
+    <!-- eye outer -->
+    <circle cx="158" cy="228" r="22"/>
+
+    <!-- dorsal ridge -->
+    <rect x="205" y="168" width="12" height="26" rx="5" transform="rotate(-10 211 181)"/>
+    <rect x="248" y="158" width="12" height="30" rx="5"/>
+    <rect x="291" y="168" width="12" height="26" rx="5" transform="rotate(10 297 181)"/>
+
+    <!-- curling tail, spiraling into a play mark -->
+    <path d="M330,300 C380,300 420,270 415,225 C410,180 365,160 330,175 C300,188 295,220 315,235 C330,246 355,240 358,222"
+          fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round"/>
+  </g>
+</svg>

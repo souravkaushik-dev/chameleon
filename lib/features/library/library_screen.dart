@@ -1,5 +1,6 @@
 import 'package:chameleon/features/library/playlist_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hicons/flutter_hicons.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -629,7 +630,7 @@ class _CreatePlaylistButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14.r),
                 ),
                 child: Icon(
-                  Icons.add_rounded,
+                  Hicons.addLightOutline,
                   color: theme.colorScheme.surface,
                   size: 22.sp,
                 ),
@@ -965,7 +966,7 @@ class _Artwork extends StatelessWidget {
 
     if (url == null || url!.trim().isEmpty) {
       return _ArtworkPlaceholder(
-        icon: Icons.music_note_rounded,
+        icon: Hicons.musicnoteLightOutline,
       );
     }
 
@@ -975,7 +976,7 @@ class _Artwork extends StatelessWidget {
       filterQuality: FilterQuality.high,
       errorBuilder: (_, __, ___) {
         return _ArtworkPlaceholder(
-          icon: Icons.music_note_rounded,
+          icon: Hicons.musicnoteLightOutline,
         );
       },
       loadingBuilder: (
