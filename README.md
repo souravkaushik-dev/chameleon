@@ -1,8 +1,26 @@
 # 🦎 Chameleon
 
+<p align="center">
+
 ### Music, reimagined.
 
-Chameleon is a cinematic, modern Flutter music player built for effortless music discovery, seamless playback, playlists, favorites, queue management, and a personalized listening experience.
+A cinematic Flutter music player built for discovering, playing, and enjoying music.
+
+<br>
+
+**Coming soon to Google Play Store**
+
+</p>
+
+---
+
+## ✦ About
+
+**Chameleon** is a modern music player focused on a beautiful listening experience.
+
+Discover trending music, search for songs, build playlists, save favorites, revisit recently played tracks, and enjoy music through an immersive cinematic player.
+
+Built with Flutter and designed from the ground up with a minimal, smooth, and artwork-focused interface.
 
 ---
 
@@ -10,7 +28,7 @@ Chameleon is a cinematic, modern Flutter music player built for effortless music
 
 ### 🎵 Discovery
 
-- ✓ YouTube music search
+- ✓ YouTube-powered music search
 - ✓ Trending songs
 - ✓ Trending artists
 - ✓ Suggested songs
@@ -29,7 +47,7 @@ Chameleon is a cinematic, modern Flutter music player built for effortless music
 - ✓ Shuffle
 - ✓ Repeat
 - ✓ Playback position tracking
-- ✓ YouTube audio stream resolution
+- ✓ Audio stream resolution
 - ◦ Gapless playback
 - ◦ Crossfade
 - ◦ Sleep timer
@@ -37,14 +55,14 @@ Chameleon is a cinematic, modern Flutter music player built for effortless music
 
 ### 🎧 Now Playing
 
-- ✓ Fullscreen cinematic artwork
-- ✓ Immersive player
-- ✓ Playback controls
+- ✓ Fullscreen cinematic player
+- ✓ Large artwork
+- ✓ Immersive playback controls
 - ✓ Progress slider
 - ✓ Favorite control
 - ✓ Queue access
 - ✓ Song options
-- ✓ Animated transitions
+- ✓ Smooth animations
 - ◦ Lyrics
 - ◦ Audio visualizer
 - ◦ Audio effects
@@ -68,7 +86,7 @@ Chameleon is a cinematic, modern Flutter music player built for effortless music
 - ✓ Large artwork cards
 - ✓ Horizontal scrolling
 - ✓ One-tap playback
-- ✓ Home screen integration
+- ✓ Home integration
 - ◦ History management
 - ◦ Clear history
 
@@ -89,14 +107,14 @@ Chameleon is a cinematic, modern Flutter music player built for effortless music
 - ✓ Add songs
 - ✓ Remove songs
 - ✓ Persistent playlists
-- ✓ Playlist artwork support
-- ◦ Reorder songs
+- ✓ Playlist artwork
+- ◦ Song reordering
 - ◦ Smart playlists
 - ◦ Playlist sharing
 
 ### 📚 Library
 
-- ✓ Library screen
+- ✓ Library
 - ✓ Favorites
 - ✓ Playlists
 - ✓ Recently played
@@ -107,7 +125,7 @@ Chameleon is a cinematic, modern Flutter music player built for effortless music
 ### 👤 Artists
 
 - ✓ Artist information
-- ✓ Artist names across the app
+- ✓ Artist names throughout the app
 - ✓ Trending artists
 - ◦ Artist profiles
 - ◦ Discography
@@ -139,65 +157,69 @@ Chameleon is a cinematic, modern Flutter music player built for effortless music
 - ◦ Search suggestions
 - ◦ Voice search
 
-### 🎨 Design
+---
 
-- ✓ Minimal UI
-- ✓ Cinematic visual language
-- ✓ Rounded interface
+## ✦ Design
+
+Chameleon is built around a simple idea:
+
+> **Music should feel immersive, not complicated.**
+
+- ✓ Minimal interface
+- ✓ Cinematic artwork
+- ✓ Rounded UI
 - ✓ Borderless components
-- ✓ Artwork-focused layouts
 - ✓ Light mode
 - ✓ Dark mode
 - ✓ Smooth animations
+- ✓ Artwork-focused layouts
+- ✓ Floating navigation
+- ✓ Floating mini player
+- ✓ Responsive layouts
 - ✓ Flutter Animate
 - ✓ ScreenUtilPlus
-- ✓ Floating bottom navigation
-- ✓ Floating mini player
-- ◦ Dynamic artwork colors
+- ◦ Dynamic artwork-based colors
 - ◦ Additional themes
 
-### ⚙ Settings
+---
 
-- ✓ Settings screen
-- ✓ Appearance
-- ✓ Notifications section
-- ✓ Audio quality section
-- ✓ About section
-- ◦ Full theme customization
-- ◦ Cache management
-- ◦ Data usage controls
-- ◦ Advanced audio settings
+## ✦ Technology
+
+| Technology | Purpose |
+|---|---|
+| Flutter | Application framework |
+| Dart | Programming language |
+| YouTube Explode Dart | Music discovery & stream resolution |
+| just_audio | Audio playback |
+| Advanced Salomon Bottom Bar | Navigation |
+| Flutter ScreenUtil Plus | Responsive UI |
+| Flutter Animate | Animations |
+| Google Fonts | Typography |
+| Shared Preferences | Local persistence |
 
 ---
 
-## 🛠 Built With
-
-- **Flutter** — UI & application framework
-- **Dart** — Programming language
-- **YouTube Explode Dart** — Music discovery & stream resolution
-- **just_audio** — Audio playback
-- **Advanced Salomon Bottom Bar** — Navigation
-- **Flutter ScreenUtil Plus** — Responsive sizing
-- **Flutter Animate** — Animations
-- **Google Fonts** — Typography
-- **Shared Preferences** — Local persistence
-
----
-
-## 🏗 Architecture
+## ✦ Architecture
 
 ```text
 lib/
+│
 ├── app/
+│
 ├── core/
+│   ├── constants/
+│   └── theme/
+│
 ├── data/
 │   ├── models/
 │   ├── services/
 │   └── storage/
+│
 ├── features/
 │   ├── home/
 │   ├── search/
 │   ├── library/
 │   ├── player/
 │   └── settings/
+│
 └── main.dart
