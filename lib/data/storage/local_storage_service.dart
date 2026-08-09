@@ -56,6 +56,21 @@ class LocalStorageService {
     );
   }
 
+
+  Future<bool?> getBool(String key) async {
+    return _preferences.getBool(key);
+  }
+
+  Future<void> setBool(
+      String key,
+      bool value,
+      ) async {
+    await _preferences.setBool(
+      key,
+      value,
+    );
+  }
+
   Future<List<Song>> _loadSongs(String key) async {
     final encoded = await _preferences.getStringList(key);
 

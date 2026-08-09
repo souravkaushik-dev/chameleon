@@ -236,8 +236,7 @@ class MusicController extends ChangeNotifier {
     final operation =
     _performHomeRefresh();
 
-    _homeRefreshOperation =
-        operation;
+    _homeRefreshOperation = operation;
 
     try {
       await operation;
@@ -274,28 +273,25 @@ class MusicController extends ChangeNotifier {
 
       for (final query in queries) {
         try {
-          final results = await _youtubeService.search(
+          final results =
+          await _youtubeService.search(
             query,
             limit: 20,
           );
 
-          debugPrint(
-            'CHAMELEON: "$query" -> ${results.length}',
-          );
-
           batches.add(results);
-        } catch (error) {
-          debugPrint(
-            'CHAMELEON SEARCH ERROR "$query": $error',
-          );
+        } catch (_) {
+          // Ignore an individual failed
+          // discovery query.
         }
       }
 
-      // -------------------------------------------------------------------------
-      // Merge every result.
-      // -------------------------------------------------------------------------
+      // -----------------------------------------------------------------------
+      // MERGE RESULTS
+      // -----------------------------------------------------------------------
 
       final songs = <Song>[];
+
       final seenIds = <String>{};
 
       for (final batch in batches) {
@@ -314,35 +310,31 @@ class MusicController extends ChangeNotifier {
         }
       }
 
-      debugPrint(
-        'CHAMELEON: UNIQUE SONGS = ${songs.length}',
-      );
+      // -----------------------------------------------------------------------
+      // TRENDING
+      // -----------------------------------------------------------------------
 
-      // -------------------------------------------------------------------------
-      // IMPORTANT:
-      // Do NOT remove songs based on title here.
-      //
-      // Different versions/remixes/live performances can legitimately have
-      // different YouTube IDs.
-      // -------------------------------------------------------------------------
+      _trendingSongs =
+          songs.take(40).toList();
 
-      _trendingSongs = songs.take(40).toList();
-
-      // -------------------------------------------------------------------------
-      // Artists.
-      // -------------------------------------------------------------------------
+      // -----------------------------------------------------------------------
+      // ARTISTS
+      // -----------------------------------------------------------------------
 
       final artists = <String>[];
+
       final seenArtists = <String>{};
 
       for (final song in _trendingSongs) {
-        final artist = song.artist.trim();
+        final artist =
+        song.artist.trim();
 
         if (artist.isEmpty) {
           continue;
         }
 
-        final key = artist.toLowerCase();
+        final key =
+        artist.toLowerCase();
 
         if (!seenArtists.add(key)) {
           continue;
@@ -357,64 +349,19 @@ class MusicController extends ChangeNotifier {
 
       _trendingArtists = artists;
 
-      // -------------------------------------------------------------------------
-      // Suggested songs.
-      // -------------------------------------------------------------------------
+      // -----------------------------------------------------------------------
+      // SUGGESTIONS
+      // -----------------------------------------------------------------------
 
-      final suggested = <Song>[];
-      final suggestedIds = <String>{};
-
-      for (final song in songs.skip(12)) {
-        if (!suggestedIds.add(song.id)) {
-          continue;
-        }
-
-        suggested.add(song);
-
-        if (suggested.length >= 20) {
-          break;
-        }
-      }
-
-      _suggestedSongs = suggested;
-
-      _homeLastUpdated = DateTime.now();
-
-      debugPrint(
-        '========================================',
+      await _loadSuggestedSongs(
+        _trendingSongs,
       );
 
-      debugPrint(
-        'CHAMELEON HOME REFRESH',
-      );
-
-      debugPrint(
-        'Trending: ${_trendingSongs.length}',
-      );
-
-      debugPrint(
-        'Artists: ${_trendingArtists.length}',
-      );
-
-      debugPrint(
-        'Suggested: ${_suggestedSongs.length}',
-      );
-
-      for (final song in _trendingSongs) {
-        debugPrint(
-          '${song.id} | ${song.title} | ${song.artist}',
-        );
-      }
-
-      debugPrint(
-        '========================================',
-      );
+      _homeLastUpdated =
+          DateTime.now();
     } catch (error) {
-      _errorMessage = error.toString();
-
-      debugPrint(
-        'CHAMELEON HOME FAILED: $error',
-      );
+      _errorMessage =
+          error.toString();
     } finally {
       _isHomeLoading = false;
 
@@ -549,15 +496,14 @@ class MusicController extends ChangeNotifier {
 
     final seenIds = <String>{};
 
-    final trendingIds =
-    trending
+    final trendingIds = trending
         .map(
           (song) => song.id,
     )
         .toSet();
 
     // -------------------------------------------------------------------------
-    // Search around several artists from the live feed.
+    // SEARCH MULTIPLE TRENDING ARTISTS
     // -------------------------------------------------------------------------
 
     final artists =
@@ -584,8 +530,9 @@ class MusicController extends ChangeNotifier {
             continue;
           }
 
-          if (trendingIds
-              .contains(song.id)) {
+          if (trendingIds.contains(
+            song.id,
+          )) {
             continue;
           }
 
@@ -597,22 +544,19 @@ class MusicController extends ChangeNotifier {
 
           suggestions.add(song);
 
-          if (suggestions.length >=
-              30) {
+          if (suggestions.length >= 30) {
             break;
           }
         }
 
-        if (suggestions.length >=
-            30) {
+        if (suggestions.length >= 30) {
           break;
         }
       }
     }
 
     // -------------------------------------------------------------------------
-    // If artist searches didn't provide enough results, use the remaining
-    // unique live feed results.
+    // FALLBACK TO TRENDING RESULTS
     // -------------------------------------------------------------------------
 
     if (suggestions.length < 24) {
@@ -624,15 +568,14 @@ class MusicController extends ChangeNotifier {
           suggestions.add(song);
         }
 
-        if (suggestions.length >=
-            30) {
+        if (suggestions.length >= 30) {
           break;
         }
       }
     }
 
     // -------------------------------------------------------------------------
-    // Never recommend the currently playing song.
+    // DON'T RECOMMEND CURRENT SONG
     // -------------------------------------------------------------------------
 
     final currentId =
@@ -665,6 +608,8 @@ class MusicController extends ChangeNotifier {
       ]);
 
       await refreshHome();
+
+      notifyListeners();
     } catch (error) {
       _errorMessage =
           error.toString();
@@ -843,9 +788,7 @@ class MusicController extends ChangeNotifier {
       );
 
       _searchResults =
-          _deduplicate(
-            results,
-          );
+          _deduplicate(results);
     } catch (error) {
       _searchResults = [];
       _errorMessage =
@@ -904,10 +847,6 @@ class MusicController extends ChangeNotifier {
   Future<Song> resolveSong(
       Song song,
       ) async {
-    // Always resolve a fresh stream.
-    //
-    // YouTube stream URLs are temporary and should not be treated as permanent
-    // song data.
     final streamUrl =
     await _youtubeService
         .getAudioStreamUrl(
@@ -953,9 +892,7 @@ class MusicController extends ChangeNotifier {
         _queueService.setQueue(
           sourceQueue,
           startIndex:
-          index >= 0
-              ? index
-              : 0,
+          index >= 0 ? index : 0,
         );
       } else {
         final current =
@@ -971,14 +908,14 @@ class MusicController extends ChangeNotifier {
       }
 
       // -----------------------------------------------------------------------
-      // FRESH STREAM
+      // RESOLVE FRESH STREAM
       // -----------------------------------------------------------------------
 
       final resolvedSong =
       await resolveSong(song);
 
       // -----------------------------------------------------------------------
-      // UPDATE CURRENT QUEUE ITEM
+      // UPDATE QUEUE
       // -----------------------------------------------------------------------
 
       _queueService.replaceCurrent(
@@ -1011,7 +948,7 @@ class MusicController extends ChangeNotifier {
       );
 
       // -----------------------------------------------------------------------
-      // STATE
+      // FINAL STATE
       // -----------------------------------------------------------------------
 
       _updatePlayback(
@@ -1214,25 +1151,39 @@ class MusicController extends ChangeNotifier {
   // PLAYLIST CREATE
   // ===========================================================================
 
-  Future<void> createPlaylist({
+  Future<Playlist?> createPlaylist({
     required String name,
     String? description,
   }) async {
-    final trimmedName =
+    final trimmed =
     name.trim();
 
-    if (trimmedName.isEmpty) {
-      return;
+    if (trimmed.isEmpty) {
+      return null;
     }
 
     await _playlistService
         .createPlaylist(
-      name: trimmedName,
-      description:
-      description,
+      name: trimmed,
+      description: description,
     );
 
+    // Reload playlists only.
+    await _playlistService.initialize();
+
+    Playlist? createdPlaylist;
+
+    for (final playlist
+    in _playlistService.playlists.reversed) {
+      if (playlist.name == trimmed) {
+        createdPlaylist = playlist;
+        break;
+      }
+    }
+
     notifyListeners();
+
+    return createdPlaylist;
   }
 
   // ===========================================================================
@@ -1322,21 +1273,6 @@ class MusicController extends ChangeNotifier {
   }
 
   // ===========================================================================
-  // DEVELOPMENT ONLY
-  // ===========================================================================
-  //
-  // Use once if old "Chameleon Test" data is still persisted.
-  // Remove this method after clearing development data.
-  //
-
-  Future<void>
-  clearAllPlaylistsForDevelopment() async {
-    await _playlistService.clear();
-
-    notifyListeners();
-  }
-
-  // ===========================================================================
   // STOP
   // ===========================================================================
 
@@ -1366,20 +1302,15 @@ class MusicController extends ChangeNotifier {
   // ===========================================================================
 
   Future<void> disposeController() async {
-    await _playingSubscription
-        ?.cancel();
+    await _playingSubscription?.cancel();
 
-    await _positionSubscription
-        ?.cancel();
+    await _positionSubscription?.cancel();
 
-    await _durationSubscription
-        ?.cancel();
+    await _durationSubscription?.cancel();
 
-    await _playerStateSubscription
-        ?.cancel();
+    await _playerStateSubscription?.cancel();
 
-    await _audioPlayerService
-        .dispose();
+    await _audioPlayerService.dispose();
 
     _youtubeService.dispose();
 
@@ -1392,17 +1323,15 @@ class MusicController extends ChangeNotifier {
 
   @override
   void dispose() {
-    _playingSubscription
-        ?.cancel();
+    _playingSubscription?.cancel();
 
-    _positionSubscription
-        ?.cancel();
+    _positionSubscription?.cancel();
 
-    _durationSubscription
-        ?.cancel();
+    _durationSubscription?.cancel();
 
-    _playerStateSubscription
-        ?.cancel();
+    _playerStateSubscription?.cancel();
+
+    _youtubeService.dispose();
 
     super.dispose();
   }

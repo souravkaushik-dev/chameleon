@@ -9,6 +9,10 @@ class PlaylistService {
   static const String _playlistsKey =
       'chameleon_playlists';
 
+  // Used so legacy test cleanup happens only once.
+  static const String _legacyCleanupKey =
+      'chameleon_legacy_test_cleanup_v1';
+
   final SharedPreferencesAsync _preferences;
 
   final List<Playlist> _playlists = [];
@@ -56,11 +60,55 @@ class PlaylistService {
         final playlist =
         _playlistFromJson(json);
 
+        // Ignore completely invalid records.
+        if (playlist.id.trim().isEmpty) {
+          continue;
+        }
+
+        if (playlist.name.trim().isEmpty) {
+          continue;
+        }
+
         _playlists.add(playlist);
       } catch (_) {
-        // Ignore invalid playlist records.
+        // Ignore corrupted playlist records.
       }
     }
+
+    // =========================================================================
+    // ONE-TIME LEGACY TEST DATA CLEANUP
+    // =========================================================================
+
+    await _removeLegacyTestPlaylists();
+  }
+
+  // ===========================================================================
+  // REMOVE OLD TEST PLAYLISTS
+  // ===========================================================================
+
+  Future<void> _removeLegacyTestPlaylists() async {
+    final alreadyCleaned =
+    await _preferences.getBool(
+      _legacyCleanupKey,
+    );
+
+    if (alreadyCleaned == true) {
+      return;
+    }
+
+    // These were created by the old backend test.
+    _playlists.removeWhere(
+          (playlist) =>
+      playlist.name.trim().toLowerCase() ==
+          'chameleon test',
+    );
+
+    await _save();
+
+    await _preferences.setBool(
+      _legacyCleanupKey,
+      true,
+    );
   }
 
   // ===========================================================================
@@ -185,7 +233,8 @@ class PlaylistService {
       playlist.id == playlistId,
     );
 
-    if (index == -1 || songs.isEmpty) {
+    if (index == -1 ||
+        songs.isEmpty) {
       return;
     }
 
@@ -195,12 +244,13 @@ class PlaylistService {
         .map((song) => song.id)
         .toSet();
 
-    final newSongs = songs
-        .where(
-          (song) =>
-          existingIds.add(song.id),
-    )
-        .toList();
+    final newSongs = <Song>[];
+
+    for (final song in songs) {
+      if (existingIds.add(song.id)) {
+        newSongs.add(song);
+      }
+    }
 
     if (newSongs.isEmpty) {
       return;
@@ -240,7 +290,8 @@ class PlaylistService {
     final updatedSongs =
     playlist.songs
         .where(
-          (song) => song.id != songId,
+          (song) =>
+      song.id != songId,
     )
         .toList();
 
@@ -290,7 +341,7 @@ class PlaylistService {
   }
 
   // ===========================================================================
-  // CLEAR
+  // CLEAR ALL PLAYLISTS
   // ===========================================================================
 
   Future<void> clear() async {
@@ -351,19 +402,26 @@ class PlaylistService {
 
     if (storedSongs is List) {
       for (final item in storedSongs) {
-        if (item is Map) {
-          try {
-            final songJson =
-            Map<String, dynamic>.from(
-              item,
-            );
+        if (item is! Map) {
+          continue;
+        }
 
-            songs.add(
-              _songFromJson(songJson),
-            );
-          } catch (_) {
-            // Ignore invalid song.
+        try {
+          final songJson =
+          Map<String, dynamic>.from(
+            item,
+          );
+
+          final song =
+          _songFromJson(songJson);
+
+          if (song.id.isEmpty) {
+            continue;
           }
+
+          songs.add(song);
+        } catch (_) {
+          // Ignore invalid song.
         }
       }
     }
@@ -402,8 +460,7 @@ class PlaylistService {
       'youtubeUrl':
       song.youtubeUrl,
 
-      // Stream URLs expire and must
-      // never be persisted.
+      // Never persist temporary stream URLs.
       'streamUrl': null,
     };
   }
@@ -419,7 +476,8 @@ class PlaylistService {
     json['durationMs'];
 
     return Song(
-      id: json['id']?.toString() ?? '',
+      id:
+      json['id']?.toString() ?? '',
       title:
       json['title']?.toString() ??
           'Unknown title',
