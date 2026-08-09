@@ -21,11 +21,6 @@ class ChameleonAudioHandler extends BaseAudioHandler
   }) {
     _bindPlayer();
   }
-
-  // ===========================================================================
-  // PLAYER STREAMS
-  // ===========================================================================
-
   StreamSubscription<bool>? _playingSubscription;
   StreamSubscription<Duration>? _positionSubscription;
   StreamSubscription<Duration?>? _durationSubscription;
@@ -58,11 +53,6 @@ class ChameleonAudioHandler extends BaseAudioHandler
           _broadcastProcessingState(state);
         });
   }
-
-  // ===========================================================================
-  // MEDIA ITEM
-  // ===========================================================================
-
   void updateSong(
       Song song,
       ) {
@@ -92,11 +82,6 @@ class ChameleonAudioHandler extends BaseAudioHandler
       playable: true,
     );
   }
-
-  // ===========================================================================
-  // QUEUE
-  // ===========================================================================
-
   void _syncQueue() {
     final songs =
         queueService.queue;
@@ -116,40 +101,20 @@ class ChameleonAudioHandler extends BaseAudioHandler
       );
     }
   }
-
-  // ===========================================================================
-  // PLAY
-  // ===========================================================================
-
   @override
   Future<void> play() async {
     playerService.play();
   }
-
-  // ===========================================================================
-  // PAUSE
-  // ===========================================================================
-
   @override
   Future<void> pause() async {
     await playerService.pause();
   }
-
-  // ===========================================================================
-  // STOP
-  // ===========================================================================
-
   @override
   Future<void> stop() async {
     await playerService.stop();
 
     await super.stop();
   }
-
-  // ===========================================================================
-  // SEEK
-  // ===========================================================================
-
   @override
   Future<void> seek(
       Duration position,
@@ -158,11 +123,6 @@ class ChameleonAudioHandler extends BaseAudioHandler
       position,
     );
   }
-
-  // ===========================================================================
-  // NEXT
-  // ===========================================================================
-
   @override
   Future<void> skipToNext() async {
     final callback = onNext;
@@ -181,11 +141,6 @@ class ChameleonAudioHandler extends BaseAudioHandler
 
     _syncQueue();
   }
-
-  // ===========================================================================
-  // PREVIOUS
-  // ===========================================================================
-
   @override
   Future<void> skipToPrevious() async {
     final callback = onPrevious;
@@ -207,11 +162,6 @@ class ChameleonAudioHandler extends BaseAudioHandler
 
     _syncQueue();
   }
-
-  // ===========================================================================
-  // QUEUE ITEM
-  // ===========================================================================
-
   @override
   Future<void> skipToQueueItem(
       int index,
@@ -263,11 +213,6 @@ class ChameleonAudioHandler extends BaseAudioHandler
 
     _syncQueue();
   }
-
-  // ===========================================================================
-  // PROCESSING STATE
-  // ===========================================================================
-
   void _broadcastProcessingState(
       PlayerState state,
       ) {
@@ -296,11 +241,6 @@ class ChameleonAudioHandler extends BaseAudioHandler
       state.playing,
     );
   }
-
-  // ===========================================================================
-  // PLAYBACK STATE
-  // ===========================================================================
-
   void _broadcastState({
     bool? playing,
     Duration? position,
@@ -362,11 +302,6 @@ class ChameleonAudioHandler extends BaseAudioHandler
       ),
     );
   }
-
-  // ===========================================================================
-  // DISPOSE
-  // ===========================================================================
-
   Future<void> disposeHandler() async {
     await _playingSubscription?.cancel();
     await _positionSubscription?.cancel();

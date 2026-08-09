@@ -79,11 +79,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                 ),
               ),
-
-              // =============================================================
-              // PLAYLISTS
-              // =============================================================
-
               if (playlists.isNotEmpty) ...[
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(
@@ -111,11 +106,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                 ),
               ],
-
-              // =============================================================
-              // CREATE PLAYLIST
-              // =============================================================
-
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(
                   22.w,
@@ -131,11 +121,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                 ),
               ),
-
-              // =============================================================
-              // LIKED SONGS
-              // =============================================================
-
               if (favorites.isNotEmpty) ...[
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(
@@ -184,11 +169,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                 ),
               ],
-
-              // =============================================================
-              // RECENTLY PLAYED
-              // =============================================================
-
               if (recentlyPlayed.isNotEmpty) ...[
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(
@@ -236,11 +216,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                 ),
               ],
-
-              // =============================================================
-              // EMPTY STATE
-              // =============================================================
-
               if (playlists.isEmpty &&
                   favorites.isEmpty &&
                   recentlyPlayed.isEmpty)
@@ -361,7 +336,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       fillColor:
                       theme.scaffoldBackgroundColor,
                       prefixIcon: const Icon(
-                        Icons.queue_music_rounded,
+                        Hicons.musicFilterBold,
                       ),
                       border: OutlineInputBorder(
                         borderRadius:
@@ -497,11 +472,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
   }
 }
-
-// =============================================================================
-// HEADER
-// =============================================================================
-
 class _LibraryHeader extends StatelessWidget {
   final int playlistCount;
   final int likedCount;
@@ -551,11 +521,6 @@ class _LibraryHeader extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// SECTION HEADER
-// =============================================================================
-
 class _SectionHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -593,11 +558,6 @@ class _SectionHeader extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// CREATE PLAYLIST
-// =============================================================================
-
 class _CreatePlaylistButton extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -645,7 +605,7 @@ class _CreatePlaylistButton extends StatelessWidget {
                 ),
               ),
               Icon(
-                Icons.chevron_right_rounded,
+                Hicons.right2LightOutline,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ],
@@ -658,11 +618,6 @@ class _CreatePlaylistButton extends StatelessWidget {
         .slideY(begin: .03, end: 0);
   }
 }
-
-// =============================================================================
-// PLAYLIST HORIZONTAL LIST
-// =============================================================================
-
 class _PlaylistHorizontalList extends StatelessWidget {
   final List<Playlist> playlists;
 
@@ -694,11 +649,6 @@ class _PlaylistHorizontalList extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// PLAYLIST CARD
-// =============================================================================
-
 class _PlaylistCard extends StatelessWidget {
   final Playlist playlist;
   final int index;
@@ -779,11 +729,6 @@ class _PlaylistCard extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// PLAYLIST ARTWORK
-// =============================================================================
-
 class _PlaylistArtwork extends StatelessWidget {
   final List<Song> songs;
 
@@ -795,7 +740,7 @@ class _PlaylistArtwork extends StatelessWidget {
   Widget build(BuildContext context) {
     if (songs.isEmpty) {
       return _ArtworkPlaceholder(
-        icon: Icons.queue_music_rounded,
+        icon: Hicons.musicFilterBold,
       );
     }
 
@@ -808,7 +753,7 @@ class _PlaylistArtwork extends StatelessWidget {
 
     if (artwork.isEmpty) {
       return _ArtworkPlaceholder(
-        icon: Icons.queue_music_rounded,
+        icon: Hicons.musicFilterBold,
       );
     }
 
@@ -836,11 +781,6 @@ class _PlaylistArtwork extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// SONG TILE
-// =============================================================================
-
 class _SongTile extends StatelessWidget {
   final Song song;
   final int index;
@@ -921,9 +861,9 @@ class _SongTile extends StatelessWidget {
               SizedBox(width: 8.w),
               Icon(
                 favorite
-                    ? Icons.favorite_rounded
-                    : Icons.more_horiz_rounded,
-                size: favorite ? 19.sp : 22.sp,
+                    ? Hicons.heart1Bold
+                    : Hicons.menuMeatballsBold,
+                size: favorite ? 29.sp : 22.sp,
                 color: favorite
                     ? theme.colorScheme.primary
                     : theme
@@ -948,11 +888,6 @@ class _SongTile extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// ARTWORK
-// =============================================================================
-
 class _Artwork extends StatelessWidget {
   final String? url;
 
@@ -1004,11 +939,6 @@ class _Artwork extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// ARTWORK PLACEHOLDER
-// =============================================================================
-
 class _ArtworkPlaceholder extends StatelessWidget {
   final IconData icon;
 
@@ -1032,11 +962,6 @@ class _ArtworkPlaceholder extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// EMPTY
-// =============================================================================
-
 class _EmptyLibrary extends StatelessWidget {
   final VoidCallback onCreatePlaylist;
 
@@ -1065,7 +990,7 @@ class _EmptyLibrary extends StatelessWidget {
                 BorderRadius.circular(26.r),
               ),
               child: Icon(
-                Icons.library_music_rounded,
+                Hicons.folder1LightOutline,
                 size: 35.sp,
               ),
             ),
@@ -1090,7 +1015,7 @@ class _EmptyLibrary extends StatelessWidget {
             SizedBox(height: 20.h),
             FilledButton.icon(
               onPressed: onCreatePlaylist,
-              icon: const Icon(Icons.add_rounded),
+              icon: const Icon(Hicons.addLightOutline),
               label: const Text('Create playlist'),
             ),
           ],

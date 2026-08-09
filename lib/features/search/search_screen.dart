@@ -57,11 +57,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
     super.dispose();
   }
-
-  // ===========================================================================
-  // SEARCH HISTORY
-  // ===========================================================================
-
   Future<void> _loadSearchHistory() async {
     final preferences = SharedPreferencesAsync();
 
@@ -120,11 +115,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
     await preferences.remove(_historyKey);
   }
-
-  // ===========================================================================
-  // SEARCH
-  // ===========================================================================
-
   void _onTextChanged() {
     if (mounted) {
       setState(() {});
@@ -206,11 +196,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
     _focusNode.requestFocus();
   }
-
-  // ===========================================================================
-  // PLAY
-  // ===========================================================================
-
   Future<void> _playSong(Song song) async {
     try {
       await controller.playSong(song);
@@ -230,11 +215,6 @@ class _SearchScreenState extends State<SearchScreen> {
       _showMessage('Unable to play this song.');
     }
   }
-
-  // ===========================================================================
-  // SONG OPTIONS
-  // ===========================================================================
-
   Future<void> _showSongOptions(Song song, List<Song> queue) async {
     final theme = Theme.of(context);
 
@@ -381,11 +361,6 @@ class _SearchScreenState extends State<SearchScreen> {
       },
     );
   }
-
-  // ===========================================================================
-  // PLAYLIST PICKER
-  // ===========================================================================
-
   Future<void> _showPlaylistPicker(Song song) async {
     final playlists = controller.playlists;
 
@@ -551,11 +526,6 @@ class _SearchScreenState extends State<SearchScreen> {
       _showMessage('Created ${created.name}');
     }
   }
-
-  // ===========================================================================
-  // MESSAGE
-  // ===========================================================================
-
   void _showMessage(String message) {
     if (!mounted) {
       return;
@@ -574,11 +544,6 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       );
   }
-
-  // ===========================================================================
-  // BUILD
-  // ===========================================================================
-
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -604,9 +569,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
                   slivers: [
-                    // =========================================================
-                    // HEADER
-                    // =========================================================
                     SliverPadding(
                       padding: EdgeInsets.fromLTRB(22.w, 22.h, 22.w, 0),
                       sliver: SliverToBoxAdapter(
@@ -632,10 +594,6 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                       ),
                     ),
-
-                    // =========================================================
-                    // SEARCH FIELD
-                    // =========================================================
                     SliverPadding(
                       padding: EdgeInsets.fromLTRB(18.w, 20.h, 18.w, 0),
                       sliver: SliverToBoxAdapter(
@@ -648,10 +606,6 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                       ),
                     ),
-
-                    // =========================================================
-                    // SEARCHING
-                    // =========================================================
                     if (controller.isSearching)
                       SliverPadding(
                         padding: EdgeInsets.fromLTRB(22.w, 24.h, 22.w, 0),
@@ -659,10 +613,6 @@ class _SearchScreenState extends State<SearchScreen> {
                           child: _SearchingIndicator(),
                         ),
                       ),
-
-                    // =========================================================
-                    // RESULTS HEADER
-                    // =========================================================
                     if (!controller.isSearching &&
                         hasQuery &&
                         results.isNotEmpty)
@@ -675,10 +625,6 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ),
                       ),
-
-                    // =========================================================
-                    // RESULTS
-                    // =========================================================
                     if (!controller.isSearching &&
                         hasQuery &&
                         results.isNotEmpty)
@@ -698,10 +644,6 @@ class _SearchScreenState extends State<SearchScreen> {
                           },
                         ),
                       ),
-
-                    // =========================================================
-                    // NO RESULTS
-                    // =========================================================
                     if (!controller.isSearching &&
                         hasQuery &&
                         _hasSubmittedSearch &&
@@ -710,10 +652,6 @@ class _SearchScreenState extends State<SearchScreen> {
                         padding: EdgeInsets.fromLTRB(22.w, 65.h, 22.w, 0),
                         sliver: const SliverToBoxAdapter(child: _NoResults()),
                       ),
-
-                    // =========================================================
-                    // RECENT SEARCHES
-                    // =========================================================
                     if (!hasQuery && _searchHistory.isNotEmpty)
                       SliverPadding(
                         padding: EdgeInsets.fromLTRB(22.w, 30.h, 22.w, 0),
@@ -739,10 +677,6 @@ class _SearchScreenState extends State<SearchScreen> {
                           },
                         ),
                       ),
-
-                    // =========================================================
-                    // RECENTLY PLAYED
-                    // =========================================================
                     if (!hasQuery && controller.recentlyPlayed.isNotEmpty)
                       SliverPadding(
                         padding: EdgeInsets.fromLTRB(
@@ -767,10 +701,6 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ),
                       ),
-
-                    // =========================================================
-                    // QUICK SEARCH
-                    // =========================================================
                     if (!hasQuery)
                       SliverPadding(
                         padding: EdgeInsets.fromLTRB(22.w, 30.h, 22.w, 0),
@@ -787,10 +717,6 @@ class _SearchScreenState extends State<SearchScreen> {
                     ),
                   ],
                 ),
-
-                // =============================================================
-                // MINI PLAYER
-                // =============================================================
                 if (currentSong != null)
                   Positioned(
                     left: 12.w,
@@ -821,11 +747,6 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 }
-
-// =============================================================================
-// SEARCH FIELD
-// =============================================================================
-
 class _SearchField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
@@ -909,11 +830,6 @@ class _SearchField extends StatelessWidget {
         );
   }
 }
-
-// =============================================================================
-// RESULT TILE
-// =============================================================================
-
 class _ResultTile extends StatelessWidget {
   final Song song;
   final int index;
@@ -1019,11 +935,6 @@ class _ResultTile extends StatelessWidget {
         );
   }
 }
-
-// =============================================================================
-// RECENTLY PLAYED
-// =============================================================================
-
 class _RecentlyPlayedList extends StatelessWidget {
   final List<Song> songs;
 
@@ -1129,11 +1040,6 @@ class _RecentlyPlayedList extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// MINI PLAYER
-// =============================================================================
-
 class _MiniPlayer extends StatelessWidget {
   final Song song;
   final bool isPlaying;
@@ -1277,11 +1183,6 @@ class _MiniPlayer extends StatelessWidget {
         );
   }
 }
-
-// =============================================================================
-// OPTION TILE
-// =============================================================================
-
 class _OptionTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -1319,11 +1220,6 @@ class _OptionTile extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// PLAYLIST OPTION
-// =============================================================================
-
 class _PlaylistOption extends StatelessWidget {
   final Playlist playlist;
   final VoidCallback onTap;
@@ -1375,11 +1271,6 @@ class _PlaylistOption extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// RECENT SEARCH
-// =============================================================================
-
 class _RecentSearchHeader extends StatelessWidget {
   final VoidCallback onClear;
 
@@ -1479,11 +1370,6 @@ class _HistoryTile extends StatelessWidget {
     ).animate().fadeIn(delay: (index * 35).ms, duration: 280.ms);
   }
 }
-
-// =============================================================================
-// QUICK SEARCH
-// =============================================================================
-
 class _QuickSearch extends StatelessWidget {
   final ValueChanged<String> onTap;
 
@@ -1540,11 +1426,6 @@ class _QuickSearch extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// SECTION HEADER
-// =============================================================================
-
 class _SectionHeader extends StatelessWidget {
   final String title;
   final int? count;
@@ -1578,11 +1459,6 @@ class _SectionHeader extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// SEARCHING
-// =============================================================================
-
 class _SearchingIndicator extends StatelessWidget {
   const _SearchingIndicator();
 
@@ -1611,11 +1487,6 @@ class _SearchingIndicator extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// NO RESULTS
-// =============================================================================
-
 class _NoResults extends StatelessWidget {
   const _NoResults();
 
@@ -1653,11 +1524,6 @@ class _NoResults extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// ARTWORK
-// =============================================================================
-
 class _Artwork extends StatelessWidget {
   final String? url;
 

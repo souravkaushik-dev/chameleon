@@ -44,22 +44,11 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // =============================================================
-                // FULLSCREEN ARTWORK
-                // =============================================================
                 _CinematicArtwork(
                   key: ValueKey(song.id),
                   url: song.thumbnailUrl,
                 ),
-
-                // =============================================================
-                // CINEMATIC GRADIENT
-                // =============================================================
                 const _CinematicGradient(),
-
-                // =============================================================
-                // TOP CONTROLS
-                // =============================================================
                 Positioned(
                   top: 0,
                   left: 0,
@@ -88,10 +77,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                     ),
                   ),
                 ),
-
-                // =============================================================
-                // BOTTOM PLAYER
-                // =============================================================
                 Positioned(
                   left: 0,
                   right: 0,
@@ -149,11 +134,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
       },
     );
   }
-
-  // ===========================================================================
-  // SONG OPTIONS
-  // ===========================================================================
-
   void _showSongOptions(BuildContext context, Song song) {
     final theme = Theme.of(context);
 
@@ -292,11 +272,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
       },
     );
   }
-
-  // ===========================================================================
-  // PLAYLIST PICKER
-  // ===========================================================================
-
   void _showPlaylistPicker(BuildContext context, Song song) {
     showModalBottomSheet<void>(
       context: context,
@@ -431,11 +406,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
       },
     );
   }
-
-  // ===========================================================================
-  // CREATE PLAYLIST
-  // ===========================================================================
-
   void _showCreatePlaylistForSong(BuildContext context, Song song) {
     final nameController = TextEditingController();
 
@@ -568,11 +538,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
       },
     ).whenComplete(nameController.dispose);
   }
-
-  // ===========================================================================
-  // QUEUE
-  // ===========================================================================
-
   void _showQueue(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
@@ -700,11 +665,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
       },
     );
   }
-
-  // ===========================================================================
-  // MESSAGE
-  // ===========================================================================
-
   void _showMessage(BuildContext context, String message) {
     if (!mounted) {
       return;
@@ -724,11 +684,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
     );
   }
 }
-
-// =============================================================================
-// CINEMATIC ARTWORK
-// =============================================================================
-
 class _CinematicArtwork extends StatelessWidget {
   final String? url;
 
@@ -803,11 +758,6 @@ class _CinematicArtwork extends StatelessWidget {
         );
   }
 }
-
-// =============================================================================
-// CINEMATIC GRADIENT
-// =============================================================================
-
 class _CinematicGradient extends StatelessWidget {
   const _CinematicGradient();
 
@@ -836,11 +786,6 @@ class _CinematicGradient extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// BOTTOM CONTROLS
-// =============================================================================
-
 class _BottomControls extends StatelessWidget {
   final Song song;
 
@@ -1075,12 +1020,7 @@ class _BottomControls extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// PROGRESS
-// =============================================================================
-
-class _CinematicProgress extends StatelessWidget {
+class _CinematicProgress extends StatefulWidget {
   final Duration position;
   final Duration duration;
   final ValueChanged<Duration> onSeek;
@@ -1091,9 +1031,20 @@ class _CinematicProgress extends StatelessWidget {
     required this.onSeek,
   });
 
-  String _format(Duration value) {
-    final minutes = value.inMinutes;
+  @override
+  State<_CinematicProgress> createState() =>
+      _CinematicProgressState();
+}
 
+class _CinematicProgressState extends State<_CinematicProgress> {
+  double? _dragValue;
+
+  String _format(Duration value) {
+    if (value.isNegative) {
+      value = Duration.zero;
+    }
+
+    final minutes = value.inMinutes;
     final seconds = value.inSeconds % 60;
 
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
@@ -1101,11 +1052,42 @@ class _CinematicProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final durationMs = duration.inMilliseconds;
+    // -------------------------------------------------------------------------
+    // IMPORTANT
+    // -------------------------------------------------------------------------
+    //
+    // Never allow position to exceed duration.
+    //
+    // This protects the UI when iOS briefly reports a position greater than
+    // the newly loaded duration.
+    //
 
-    final safeMax = durationMs > 0 ? durationMs : 1;
+    final durationMs =
+        widget.duration.inMilliseconds;
 
-    final currentMs = position.inMilliseconds.clamp(0, safeMax);
+    final safeDurationMs =
+    durationMs > 0 ? durationMs : 1;
+
+    final positionMs =
+    widget.position.inMilliseconds
+        .clamp(0, safeDurationMs);
+
+    final sliderValue =
+        _dragValue ?? positionMs.toDouble();
+
+    final safeSliderValue =
+    sliderValue.clamp(
+      0.0,
+      safeDurationMs.toDouble(),
+    );
+
+    final displayPosition = Duration(
+      milliseconds:
+      safeSliderValue.round(),
+    );
+
+    final displayDuration =
+        widget.duration;
 
     return Column(
       children: [
@@ -1113,38 +1095,76 @@ class _CinematicProgress extends StatelessWidget {
           data: SliderTheme.of(context).copyWith(
             trackHeight: 3.h,
             activeTrackColor: Colors.white,
-            inactiveTrackColor: Colors.white.withValues(alpha: 0.28),
+            inactiveTrackColor:
+            Colors.white.withValues(
+              alpha: 0.28,
+            ),
             thumbColor: Colors.white,
             overlayColor: Colors.white12,
-            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 5.r),
-            overlayShape: RoundSliderOverlayShape(overlayRadius: 15.r),
+            thumbShape:
+            RoundSliderThumbShape(
+              enabledThumbRadius: 5.r,
+            ),
+            overlayShape:
+            RoundSliderOverlayShape(
+              overlayRadius: 15.r,
+            ),
           ),
           child: Slider(
-            value: currentMs.toDouble(),
+            value: safeSliderValue,
             min: 0,
-            max: safeMax.toDouble(),
-            onChanged: (value) {
-              onSeek(Duration(milliseconds: value.round()));
+            max: safeDurationMs.toDouble(),
+
+            onChangeStart: (value) {
+              setState(() {
+                _dragValue = value;
+              });
             },
+
+            onChanged: (value) {
+              setState(() {
+                _dragValue = value;
+              });
+            },
+
+            onChangeEnd: (value) async {
+              final position = Duration(
+                milliseconds: value.round(),
+              );
+
+              setState(() {
+                _dragValue = null;
+              });
+
+              widget.onSeek(position);            },
           ),
         ),
 
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 3.w),
+          padding:
+          EdgeInsets.symmetric(
+            horizontal: 3.w,
+          ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment:
+            MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _format(position),
+                _format(displayPosition),
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.48),
+                  color: Colors.white.withValues(
+                    alpha: 0.48,
+                  ),
                   fontSize: 10.sp,
                 ),
               ),
+
               Text(
-                _format(duration),
+                _format(displayDuration),
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.48),
+                  color: Colors.white.withValues(
+                    alpha: 0.48,
+                  ),
                   fontSize: 10.sp,
                 ),
               ),
@@ -1155,11 +1175,6 @@ class _CinematicProgress extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// PLAYER ICON
-// =============================================================================
-
 class _BottomIcon extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -1197,11 +1212,6 @@ class _BottomIcon extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// TOP FLOATING BUTTON
-// =============================================================================
-
 class _FloatingButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -1225,11 +1235,6 @@ class _FloatingButton extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// QUEUE TILE
-// =============================================================================
-
 class _QueueSongTile extends StatelessWidget {
   final Song song;
   final bool isCurrent;
@@ -1274,7 +1279,7 @@ class _QueueSongTile extends StatelessWidget {
                         return Container(
                           color: theme.colorScheme.surface,
                           alignment: Alignment.center,
-                          child: Icon(Icons.music_note_rounded, size: 24.sp),
+                          child: Icon(Hicons.musicnoteLightOutline, size: 24.sp),
                         );
                       },
                     ),
@@ -1312,7 +1317,7 @@ class _QueueSongTile extends StatelessWidget {
 
                 if (isCurrent)
                   Icon(
-                    Icons.graphic_eq_rounded,
+                    Hicons.voiceLightOutline,
                     size: 21.sp,
                     color: theme.colorScheme.onSurface,
                   )
@@ -1321,7 +1326,7 @@ class _QueueSongTile extends StatelessWidget {
                     tooltip: 'Remove',
                     onPressed: onRemove,
                     icon: Icon(
-                      Icons.close_rounded,
+                      Hicons.closeLightOutline,
                       size: 20.sp,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -1335,11 +1340,6 @@ class _QueueSongTile extends StatelessWidget {
         .slideX(begin: 0.04, end: 0, delay: (index * 25).ms, duration: 300.ms);
   }
 }
-
-// =============================================================================
-// PLAYLIST PICKER TILE
-// =============================================================================
-
 class _PlaylistPickerTile extends StatelessWidget {
   final Playlist playlist;
   final bool alreadyAdded;
@@ -1412,8 +1412,8 @@ class _PlaylistPickerTile extends StatelessWidget {
 
                 Icon(
                   alreadyAdded
-                      ? Icons.check_circle_rounded
-                      : Icons.chevron_right_rounded,
+                      ? Hicons.ticket1LightOutline
+                      : Hicons.right2LightOutline,
                   color: alreadyAdded
                       ? theme.colorScheme.primary
                       : theme.colorScheme.onSurfaceVariant,
@@ -1432,15 +1432,10 @@ class _PlaylistPickerTile extends StatelessWidget {
     return Container(
       color: theme.colorScheme.surfaceContainerHighest,
       alignment: Alignment.center,
-      child: Icon(Icons.queue_music_rounded, size: 26.sp),
+      child: Icon(Hicons.musicFilterBold, size: 26.sp),
     );
   }
 }
-
-// =============================================================================
-// SHEET HANDLE
-// =============================================================================
-
 class _SheetHandle extends StatelessWidget {
   const _SheetHandle();
 
@@ -1456,11 +1451,6 @@ class _SheetHandle extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// OPTION TILE
-// =============================================================================
-
 class _OptionTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -1498,11 +1488,6 @@ class _OptionTile extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// EMPTY PLAYLIST STATE
-// =============================================================================
-
 class _EmptyPlaylistState extends StatelessWidget {
   final VoidCallback onCreate;
 
@@ -1547,7 +1532,7 @@ class _EmptyPlaylistState extends StatelessWidget {
 
             FilledButton.icon(
               onPressed: onCreate,
-              icon: const Icon(Icons.add_rounded),
+              icon: const Icon(Hicons.addLightOutline),
               label: const Text('Create playlist'),
             ),
           ],
@@ -1556,11 +1541,6 @@ class _EmptyPlaylistState extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// EMPTY QUEUE
-// =============================================================================
-
 class _EmptyQueueState extends StatelessWidget {
   const _EmptyQueueState();
 
@@ -1573,7 +1553,7 @@ class _EmptyQueueState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.queue_music_rounded,
+             Hicons.musicFilterBold,
             size: 54.sp,
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -1596,11 +1576,6 @@ class _EmptyQueueState extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// EMPTY PLAYER
-// =============================================================================
-
 class _EmptyPlayer extends StatelessWidget {
   final VoidCallback onClose;
 

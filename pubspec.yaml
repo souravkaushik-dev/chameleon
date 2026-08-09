@@ -23,6 +23,7 @@ dependencies:
   shared_preferences: ^2.5.5
   salomon_bottom_bar: ^3.3.2
   liquid_glass_easy: ^3.5.0
+  just_audio_background: ^0.0.1-beta.17
 
 dev_dependencies:
   flutter_test:
@@ -34,4 +35,4 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/logo.svg
+    - assets/logo/logo.svg

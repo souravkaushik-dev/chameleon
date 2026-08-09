@@ -14,11 +14,6 @@ class LibraryService {
     LocalStorageService? storage,
   }) : _storage =
       storage ?? LocalStorageService();
-
-  // ===========================================================================
-  // GETTERS
-  // ===========================================================================
-
   List<Song> get favorites {
     return List.unmodifiable(_favorites);
   }
@@ -26,11 +21,6 @@ class LibraryService {
   List<Song> get recentlyPlayed {
     return List.unmodifiable(_recentlyPlayed);
   }
-
-  // ===========================================================================
-  // INITIALIZE
-  // ===========================================================================
-
   Future<void> initialize() async {
     final favorites =
     await _storage.loadFavorites();
@@ -49,11 +39,6 @@ class LibraryService {
     // Remove the old backend-test favorite once.
     await _removeLegacyTestFavorite();
   }
-
-  // ===========================================================================
-  // REMOVE OLD TEST FAVORITE
-  // ===========================================================================
-
   Future<void> _removeLegacyTestFavorite() async {
     final alreadyCleaned =
     await _storage.getBool(
@@ -80,21 +65,11 @@ class LibraryService {
       true,
     );
   }
-
-  // ===========================================================================
-  // FAVORITE CHECK
-  // ===========================================================================
-
   bool isFavorite(String songId) {
     return _favorites.any(
           (song) => song.id == songId,
     );
   }
-
-  // ===========================================================================
-  // TOGGLE FAVORITE
-  // ===========================================================================
-
   Future<void> toggleFavorite(
       Song song,
       ) async {
@@ -110,11 +85,6 @@ class LibraryService {
       _favorites,
     );
   }
-
-  // ===========================================================================
-  // RECENTLY PLAYED
-  // ===========================================================================
-
   Future<void> addToRecentlyPlayed(
       Song song,
       ) async {
@@ -135,21 +105,11 @@ class LibraryService {
       _recentlyPlayed,
     );
   }
-
-  // ===========================================================================
-  // CLEAR FAVORITES
-  // ===========================================================================
-
   Future<void> clearFavorites() async {
     _favorites.clear();
 
     await _storage.clearFavorites();
   }
-
-  // ===========================================================================
-  // CLEAR RECENTLY PLAYED
-  // ===========================================================================
-
   Future<void> clearRecentlyPlayed() async {
     _recentlyPlayed.clear();
 

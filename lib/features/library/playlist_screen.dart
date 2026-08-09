@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_hicons/flutter_hicons.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 
 import '../../data/models/playlist.dart';
@@ -27,11 +28,6 @@ class _PlaylistScreenState
     extends State<PlaylistScreen> {
   final MusicController controller =
       MusicControllerProvider.instance;
-
-  // ===========================================================================
-  // PLAYLIST
-  // ===========================================================================
-
   Playlist? _findPlaylist() {
     for (final item in controller.playlists) {
       if (item.id == widget.playlistId) {
@@ -41,11 +37,6 @@ class _PlaylistScreenState
 
     return null;
   }
-
-  // ===========================================================================
-  // ARTWORK
-  // ===========================================================================
-
   String? _getArtwork(
       Playlist playlist,
       ) {
@@ -68,11 +59,6 @@ class _PlaylistScreenState
 
     return null;
   }
-
-  // ===========================================================================
-  // PLAY
-  // ===========================================================================
-
   Future<void> _playSong(
       Song song,
       List<Song> songs,
@@ -119,11 +105,6 @@ class _PlaylistScreenState
       songs,
     );
   }
-
-  // ===========================================================================
-  // SHUFFLE
-  // ===========================================================================
-
   Future<void> _shuffle(
       List<Song> songs,
       ) async {
@@ -143,11 +124,6 @@ class _PlaylistScreenState
       shuffled,
     );
   }
-
-  // ===========================================================================
-  // LIKE
-  // ===========================================================================
-
   Future<void> _toggleLike(
       Song song,
       ) async {
@@ -161,11 +137,6 @@ class _PlaylistScreenState
 
     setState(() {});
   }
-
-  // ===========================================================================
-  // QUEUE
-  // ===========================================================================
-
   void _addToQueue(
       Song song,
       ) {
@@ -175,11 +146,6 @@ class _PlaylistScreenState
       'Added to queue',
     );
   }
-
-  // ===========================================================================
-  // REMOVE SONG
-  // ===========================================================================
-
   Future<void> _removeSong(
       Playlist playlist,
       Song song,
@@ -199,11 +165,6 @@ class _PlaylistScreenState
       'Removed from playlist',
     );
   }
-
-  // ===========================================================================
-  // SONG MENU
-  // ===========================================================================
-
   Future<void> _showSongMenu(
       Song song,
       Playlist playlist,
@@ -348,10 +309,10 @@ class _PlaylistScreenState
 
                 _MenuItem(
                   icon: liked
-                      ? Icons
-                      .favorite_rounded
-                      : Icons
-                      .favorite_border_rounded,
+                      ? Hicons
+                      .heart1Bold
+                      : Hicons
+                      .heart1LightOutline,
                   title: liked
                       ? 'Unlike'
                       : 'Like',
@@ -367,8 +328,8 @@ class _PlaylistScreenState
                 ),
 
                 _MenuItem(
-                  icon: Icons
-                      .queue_music_rounded,
+                  icon: Hicons
+                      .musicFilterBold,
                   title: 'Add to queue',
                   onTap: () {
                     Navigator.pop(
@@ -380,8 +341,8 @@ class _PlaylistScreenState
                 ),
 
                 _MenuItem(
-                  icon: Icons
-                      .play_arrow_rounded,
+                  icon: Hicons
+                      .playLightOutline,
                   title: 'Play now',
                   onTap: () async {
                     Navigator.pop(
@@ -396,8 +357,8 @@ class _PlaylistScreenState
                 ),
 
                 _MenuItem(
-                  icon: Icons
-                      .remove_circle_outline_rounded,
+                  icon: Hicons
+                      .folderCross1LightOutline,
                   title:
                   'Remove from playlist',
                   destructive: true,
@@ -430,11 +391,6 @@ class _PlaylistScreenState
       },
     );
   }
-
-  // ===========================================================================
-  // PLAYLIST MENU
-  // ===========================================================================
-
   Future<void> _showPlaylistMenu(
       Playlist playlist,
       ) async {
@@ -476,8 +432,8 @@ class _PlaylistScreenState
                 const _SheetHandle(),
 
                 _MenuItem(
-                  icon: Icons
-                      .play_arrow_rounded,
+                  icon: Hicons
+                      .playLightOutline,
                   title: 'Play playlist',
                   onTap: () async {
                     Navigator.pop(
@@ -492,7 +448,7 @@ class _PlaylistScreenState
 
                 _MenuItem(
                   icon:
-                  Icons.shuffle_rounded,
+                  Hicons.shuffle1LightOutline,
                   title: 'Shuffle',
                   onTap: () async {
                     Navigator.pop(
@@ -506,8 +462,8 @@ class _PlaylistScreenState
                 ),
 
                 _MenuItem(
-                  icon: Icons
-                      .delete_outline_rounded,
+                  icon: Hicons
+                      .delete1LightOutline,
                   title:
                   'Delete playlist',
                   destructive: true,
@@ -539,11 +495,6 @@ class _PlaylistScreenState
       },
     );
   }
-
-  // ===========================================================================
-  // DELETE
-  // ===========================================================================
-
   Future<void> _confirmDelete(
       Playlist playlist,
       ) async {
@@ -619,11 +570,6 @@ class _PlaylistScreenState
 
     Navigator.pop(context);
   }
-
-  // ===========================================================================
-  // MESSAGE
-  // ===========================================================================
-
   void _showMessage(
       String message,
       ) {
@@ -662,11 +608,6 @@ class _PlaylistScreenState
         ),
       );
   }
-
-  // ===========================================================================
-  // BUILD
-  // ===========================================================================
-
   @override
   Widget build(
       BuildContext context,
@@ -765,11 +706,6 @@ class _PlaylistScreenState
               ),
             ),
           ),
-
-          // ===================================================================
-          // HEADER
-          // ===================================================================
-
           if (songs.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
@@ -873,22 +809,12 @@ class _PlaylistScreenState
                 ),
               ),
             ),
-
-          // ===================================================================
-          // EMPTY
-          // ===================================================================
-
           if (songs.isEmpty)
             const SliverFillRemaining(
               hasScrollBody: false,
               child:
               _EmptyPlaylist(),
             ),
-
-          // ===================================================================
-          // BOTTOM SPACE
-          // ===================================================================
-
           SliverToBoxAdapter(
             child: SizedBox(
               height: 120.h,
@@ -899,11 +825,6 @@ class _PlaylistScreenState
     );
   }
 }
-
-// =============================================================================
-// PLAYLIST ACTIONS
-// =============================================================================
-
 class _PlaylistActions
     extends StatelessWidget {
   final bool enabled;
@@ -930,7 +851,7 @@ class _PlaylistActions
             onPressed:
             enabled ? onPlay : null,
             icon: Icon(
-              Icons.play_arrow_rounded,
+              Hicons.playLightOutline,
               size: 23.sp,
             ),
             label: Text(
@@ -978,7 +899,7 @@ class _PlaylistActions
               width: 54.w,
               height: 54.w,
               child: Icon(
-                Icons.shuffle_rounded,
+                Hicons.shuffle1LightOutline,
                 size: 21.sp,
                 color: enabled
                     ? null
@@ -996,11 +917,6 @@ class _PlaylistActions
     );
   }
 }
-
-// =============================================================================
-// CINEMATIC HERO
-// =============================================================================
-
 class _CinematicHero
     extends StatelessWidget {
   final Playlist playlist;
@@ -1035,7 +951,7 @@ class _CinematicHero
         EdgeInsets.only(left: 10.w),
         child: _GlassButton(
           icon:
-          Icons.arrow_back_ios_new_rounded,
+          Hicons.left2LightOutline,
           onTap: onBack,
         ),
       ),
@@ -1046,7 +962,7 @@ class _CinematicHero
           EdgeInsets.only(right: 10.w),
           child: _GlassButton(
             icon:
-            Icons.more_horiz_rounded,
+            Hicons.menuHamburger1LightOutline,
             onTap: onMore,
           ),
         ),
@@ -1260,11 +1176,6 @@ class _CinematicHero
     );
   }
 }
-
-// =============================================================================
-// GLASS BUTTON
-// =============================================================================
-
 class _GlassButton
     extends StatelessWidget {
   final IconData icon;
@@ -1307,11 +1218,6 @@ class _GlassButton
     );
   }
 }
-
-// =============================================================================
-// SONG TILE
-// =============================================================================
-
 class _PlaylistSongTile
     extends StatelessWidget {
   final Song song;
@@ -1430,8 +1336,8 @@ class _PlaylistSongTile
                   right: 2.w,
                 ),
                 child: Icon(
-                  Icons.favorite_rounded,
-                  size: 17.sp,
+                  Hicons.heart1Bold,
+                  size: 27.sp,
                   color: theme
                       .colorScheme
                       .primary,
@@ -1449,7 +1355,7 @@ class _PlaylistSongTile
               onPressed: onMore,
               splashRadius: 22.r,
               icon: Icon(
-                Icons.more_horiz_rounded,
+                Hicons.menuHamburger1LightOutline,
                 size: 23.sp,
                 color: theme
                     .colorScheme
@@ -1480,11 +1386,6 @@ class _PlaylistSongTile
     );
   }
 }
-
-// =============================================================================
-// MENU ITEM
-// =============================================================================
-
 class _MenuItem
     extends StatelessWidget {
   final IconData icon;
@@ -1562,8 +1463,8 @@ class _MenuItem
               ),
 
               Icon(
-                Icons
-                    .chevron_right_rounded,
+                Hicons
+                    .right2LightOutline,
                 size: 20.sp,
                 color: theme
                     .colorScheme
@@ -1579,11 +1480,6 @@ class _MenuItem
     );
   }
 }
-
-// =============================================================================
-// SHEET HANDLE
-// =============================================================================
-
 class _SheetHandle
     extends StatelessWidget {
   const _SheetHandle();
@@ -1615,11 +1511,6 @@ class _SheetHandle
     );
   }
 }
-
-// =============================================================================
-// EMPTY
-// =============================================================================
-
 class _EmptyPlaylist
     extends StatelessWidget {
   const _EmptyPlaylist();
@@ -1650,8 +1541,8 @@ class _EmptyPlaylist
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons
-                    .queue_music_rounded,
+                Hicons
+                    .musicFilterBold,
                 size: 38.sp,
                 color: theme
                     .colorScheme
@@ -1716,11 +1607,6 @@ class _EmptyPlaylist
     );
   }
 }
-
-// =============================================================================
-// NOT FOUND
-// =============================================================================
-
 class _PlaylistNotFound
     extends StatelessWidget {
   const _PlaylistNotFound();
@@ -1736,8 +1622,8 @@ class _PlaylistNotFound
           MainAxisSize.min,
           children: [
             Icon(
-              Icons
-                  .playlist_remove_rounded,
+              Hicons
+                  .folderCross1LightOutline,
               size: 54.sp,
             ),
 
@@ -1775,11 +1661,6 @@ class _PlaylistNotFound
     );
   }
 }
-
-// =============================================================================
-// ARTWORK
-// =============================================================================
-
 class _Artwork
     extends StatelessWidget {
   final String? url;
@@ -1804,7 +1685,7 @@ class _Artwork
         alignment:
         Alignment.center,
         child: Icon(
-          Icons.music_note_rounded,
+          Hicons.musicnoteLightOutline,
           size: 32.sp,
           color: theme
               .colorScheme
@@ -1831,7 +1712,7 @@ class _Artwork
           alignment:
           Alignment.center,
           child: Icon(
-            Icons.music_note_rounded,
+            Hicons.musicnoteLightOutline,
             size: 32.sp,
             color: theme
                 .colorScheme

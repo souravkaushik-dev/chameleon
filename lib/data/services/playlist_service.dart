@@ -21,19 +21,9 @@ class PlaylistService {
     SharedPreferencesAsync? preferences,
   }) : _preferences =
       preferences ?? SharedPreferencesAsync();
-
-  // ===========================================================================
-  // GETTERS
-  // ===========================================================================
-
   List<Playlist> get playlists {
     return List.unmodifiable(_playlists);
   }
-
-  // ===========================================================================
-  // INITIALIZE
-  // ===========================================================================
-
   Future<void> initialize() async {
     final stored =
     await _preferences.getStringList(
@@ -74,18 +64,8 @@ class PlaylistService {
         // Ignore corrupted playlist records.
       }
     }
-
-    // =========================================================================
-    // ONE-TIME LEGACY TEST DATA CLEANUP
-    // =========================================================================
-
     await _removeLegacyTestPlaylists();
   }
-
-  // ===========================================================================
-  // REMOVE OLD TEST PLAYLISTS
-  // ===========================================================================
-
   Future<void> _removeLegacyTestPlaylists() async {
     final alreadyCleaned =
     await _preferences.getBool(
@@ -110,11 +90,6 @@ class PlaylistService {
       true,
     );
   }
-
-  // ===========================================================================
-  // CREATE
-  // ===========================================================================
-
   Future<Playlist?> createPlaylist({
     required String name,
     String? description,
@@ -142,11 +117,6 @@ class PlaylistService {
 
     return playlist;
   }
-
-  // ===========================================================================
-  // DELETE
-  // ===========================================================================
-
   Future<void> deletePlaylist(
       String playlistId,
       ) async {
@@ -163,11 +133,6 @@ class PlaylistService {
 
     await _save();
   }
-
-  // ===========================================================================
-  // GET PLAYLIST
-  // ===========================================================================
-
   Playlist? getPlaylist(
       String playlistId,
       ) {
@@ -179,11 +144,6 @@ class PlaylistService {
 
     return null;
   }
-
-  // ===========================================================================
-  // ADD SONG
-  // ===========================================================================
-
   Future<void> addSong(
       String playlistId,
       Song song,
@@ -218,11 +178,6 @@ class PlaylistService {
 
     await _save();
   }
-
-  // ===========================================================================
-  // ADD MULTIPLE SONGS
-  // ===========================================================================
-
   Future<void> addSongs(
       String playlistId,
       List<Song> songs,
@@ -266,11 +221,6 @@ class PlaylistService {
 
     await _save();
   }
-
-  // ===========================================================================
-  // REMOVE SONG
-  // ===========================================================================
-
   Future<void> removeSong(
       String playlistId,
       String songId,
@@ -307,11 +257,6 @@ class PlaylistService {
 
     await _save();
   }
-
-  // ===========================================================================
-  // RENAME
-  // ===========================================================================
-
   Future<void> renamePlaylist(
       String playlistId,
       String name,
@@ -339,11 +284,6 @@ class PlaylistService {
 
     await _save();
   }
-
-  // ===========================================================================
-  // CLEAR ALL PLAYLISTS
-  // ===========================================================================
-
   Future<void> clear() async {
     _playlists.clear();
 
@@ -351,11 +291,6 @@ class PlaylistService {
       _playlistsKey,
     );
   }
-
-  // ===========================================================================
-  // SAVE
-  // ===========================================================================
-
   Future<void> _save() async {
     final encoded = _playlists
         .map(_playlistToJson)
@@ -367,11 +302,6 @@ class PlaylistService {
       encoded,
     );
   }
-
-  // ===========================================================================
-  // PLAYLIST → JSON
-  // ===========================================================================
-
   Map<String, dynamic> _playlistToJson(
       Playlist playlist,
       ) {
@@ -387,11 +317,6 @@ class PlaylistService {
           .toList(),
     };
   }
-
-  // ===========================================================================
-  // JSON → PLAYLIST
-  // ===========================================================================
-
   Playlist _playlistFromJson(
       Map<String, dynamic> json,
       ) {
@@ -440,11 +365,6 @@ class PlaylistService {
       songs: songs,
     );
   }
-
-  // ===========================================================================
-  // SONG → JSON
-  // ===========================================================================
-
   Map<String, dynamic> _songToJson(
       Song song,
       ) {
@@ -464,11 +384,6 @@ class PlaylistService {
       'streamUrl': null,
     };
   }
-
-  // ===========================================================================
-  // JSON → SONG
-  // ===========================================================================
-
   Song _songFromJson(
       Map<String, dynamic> json,
       ) {

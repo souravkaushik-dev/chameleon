@@ -21,20 +21,11 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState
     extends State<SplashScreen>
     with TickerProviderStateMixin {
-  // ===========================================================================
-  // STORAGE
-  // ===========================================================================
-
   static const String _onboardingCompletedKey =
       'chameleon_onboarding_completed';
 
   static const String _userNameKey =
       'chameleon_user_name';
-
-  // ===========================================================================
-  // ANIMATION
-  // ===========================================================================
-
   late final AnimationController _mainController;
   late final AnimationController _ambientController;
   late final AnimationController _welcomeController;
@@ -49,11 +40,6 @@ class _SplashScreenState
 
   late final Animation<double> _exitOpacity;
   late final Animation<double> _exitScale;
-
-  // ===========================================================================
-  // USER
-  // ===========================================================================
-
   String? _userName;
 
   bool _onboardingCompleted = false;
@@ -63,11 +49,6 @@ class _SplashScreenState
   @override
   void initState() {
     super.initState();
-
-    // =========================================================================
-    // MAIN LOGO
-    // =========================================================================
-
     _mainController = AnimationController(
       vsync: this,
       duration: const Duration(
@@ -112,22 +93,12 @@ class _SplashScreenState
         ),
       ),
     );
-
-    // =========================================================================
-    // AMBIENT MOTION
-    // =========================================================================
-
     _ambientController = AnimationController(
       vsync: this,
       duration: const Duration(
         milliseconds: 5200,
       ),
     );
-
-    // =========================================================================
-    // WELCOME
-    // =========================================================================
-
     _welcomeController = AnimationController(
       vsync: this,
       duration: const Duration(
@@ -154,11 +125,6 @@ class _SplashScreenState
         curve: Curves.easeOutCubic,
       ),
     );
-
-    // =========================================================================
-    // EXIT
-    // =========================================================================
-
     _exitController = AnimationController(
       vsync: this,
       duration: const Duration(
@@ -188,11 +154,6 @@ class _SplashScreenState
 
     _loadUserAndStart();
   }
-
-  // ===========================================================================
-  // LOAD USER
-  // ===========================================================================
-
   Future<void> _loadUserAndStart() async {
     final preferences =
     await SharedPreferences.getInstance();
@@ -216,11 +177,6 @@ class _SplashScreenState
 
     _startAnimation();
   }
-
-  // ===========================================================================
-  // SPLASH ANIMATION
-  // ===========================================================================
-
   Future<void> _startAnimation() async {
     _ambientController.repeat(
       reverse: true,
@@ -272,11 +228,6 @@ class _SplashScreenState
 
     await _leave();
   }
-
-  // ===========================================================================
-  // LEAVE
-  // ===========================================================================
-
   Future<void> _leave() async {
     if (_isLeaving) {
       return;
@@ -339,11 +290,6 @@ class _SplashScreenState
       ),
     );
   }
-
-  // ===========================================================================
-  // DISPOSE
-  // ===========================================================================
-
   @override
   void dispose() {
     _mainController.dispose();
@@ -353,11 +299,6 @@ class _SplashScreenState
 
     super.dispose();
   }
-
-  // ===========================================================================
-  // BUILD
-  // ===========================================================================
-
   @override
   Widget build(BuildContext context) {
     final theme =
@@ -396,30 +337,16 @@ class _SplashScreenState
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // ===========================================================
-                  // BACKGROUND
-                  // ===========================================================
-
                   Container(
                     color:
                     background,
                   ),
-
-                  // ===========================================================
-                  // MINIMAL CINEMATIC LIGHT
-                  // ===========================================================
-
                   _MinimalAmbientLight(
                     color:
                     appColor,
                     animation:
                     _ambientController,
                   ),
-
-                  // ===========================================================
-                  // CENTER LOGO
-                  // ===========================================================
-
                   Center(
                     child: Opacity(
                       opacity:
@@ -446,11 +373,6 @@ class _SplashScreenState
                       ),
                     ),
                   ),
-
-                  // ===========================================================
-                  // BOTTOM PERSONAL GREETING
-                  // ===========================================================
-
                   Positioned(
                     left: 28,
                     right: 28,
@@ -487,11 +409,6 @@ class _SplashScreenState
     );
   }
 }
-
-// =============================================================================
-// MINIMAL AMBIENT LIGHT
-// =============================================================================
-
 class _MinimalAmbientLight
     extends StatelessWidget {
   final Color color;
@@ -515,10 +432,6 @@ class _MinimalAmbientLight
     return IgnorePointer(
       child: Stack(
         children: [
-          // ===================================================================
-          // LARGE SOFT LIGHT
-          // ===================================================================
-
           Positioned(
             left:
             size.width * 0.15 +
@@ -538,11 +451,6 @@ class _MinimalAmbientLight
               90,
             ),
           ),
-
-          // ===================================================================
-          // SECOND LIGHT
-          // ===================================================================
-
           Positioned(
             right:
             -size.width * 0.22 +
@@ -562,11 +470,6 @@ class _MinimalAmbientLight
               100,
             ),
           ),
-
-          // ===================================================================
-          // TINY CENTER LIGHT
-          // ===================================================================
-
           Center(
             child:
             _SoftOrb(
@@ -585,11 +488,6 @@ class _MinimalAmbientLight
     );
   }
 }
-
-// =============================================================================
-// SOFT ORB
-// =============================================================================
-
 class _SoftOrb
     extends StatelessWidget {
   final Color color;
@@ -634,11 +532,6 @@ class _SoftOrb
     );
   }
 }
-
-// =============================================================================
-// CHAMELEON MARK
-// =============================================================================
-
 class _ChameleonMark
     extends StatelessWidget {
   final Color color;
@@ -656,10 +549,6 @@ class _ChameleonMark
         alignment:
         Alignment.center,
         children: [
-          // ================================================================
-          // VERY SOFT OUTER GLOW
-          // ================================================================
-
           Container(
             width: 104,
             height: 104,
@@ -674,11 +563,6 @@ class _ChameleonMark
               ),
             ),
           ),
-
-          // ================================================================
-          // GLASS CIRCLE
-          // ================================================================
-
           ClipOval(
             child:
             BackdropFilter(
@@ -722,11 +606,6 @@ class _ChameleonMark
     );
   }
 }
-
-// =============================================================================
-// WELCOME MESSAGE
-// =============================================================================
-
 class _WelcomeMessage
     extends StatelessWidget {
   final String? userName;

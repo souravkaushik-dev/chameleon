@@ -23,20 +23,11 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState
     extends State<OnboardingScreen>
     with TickerProviderStateMixin {
-  // ===========================================================================
-  // STORAGE
-  // ===========================================================================
-
   static const String _onboardingCompletedKey =
       'chameleon_onboarding_completed';
 
   static const String _userNameKey =
       'chameleon_user_name';
-
-  // ===========================================================================
-  // CONTROLLERS
-  // ===========================================================================
-
   late final TextEditingController _nameController;
   late final FocusNode _nameFocus;
 
@@ -46,11 +37,6 @@ class _OnboardingScreenState
   late final AnimationController _fieldController;
 
   bool _isSaving = false;
-
-  // ===========================================================================
-  // INIT
-  // ===========================================================================
-
   @override
   void initState() {
     super.initState();
@@ -115,11 +101,6 @@ class _OnboardingScreenState
       return;
     }
   }
-
-  // ===========================================================================
-  // DISPOSE
-  // ===========================================================================
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -132,11 +113,6 @@ class _OnboardingScreenState
 
     super.dispose();
   }
-
-  // ===========================================================================
-  // CONTINUE
-  // ===========================================================================
-
   Future<void> _continue() async {
     if (_isSaving) {
       return;
@@ -243,11 +219,6 @@ class _OnboardingScreenState
       await _buttonController.reverse();
     }
   }
-
-  // ===========================================================================
-  // BUILD
-  // ===========================================================================
-
   @override
   Widget build(
       BuildContext context,
@@ -308,10 +279,6 @@ class _OnboardingScreenState
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  // ==========================================================
-                  // BACKGROUND
-                  // ==========================================================
-
                   Container(
                     color:
                     theme.scaffoldBackgroundColor,
@@ -322,11 +289,6 @@ class _OnboardingScreenState
                     animation:
                     ambientValue,
                   ),
-
-                  // ==========================================================
-                  // CONTENT
-                  // ==========================================================
-
                   SafeArea(
                     child: LayoutBuilder(
                       builder: (
@@ -378,10 +340,6 @@ class _OnboardingScreenState
                                   CrossAxisAlignment
                                       .start,
                                   children: [
-                                    // ========================================
-                                    // TOP BRAND
-                                    // ========================================
-
                                     SizedBox(
                                       height:
                                       26.h,
@@ -403,11 +361,6 @@ class _OnboardingScreenState
                                         appColor,
                                       ),
                                     ),
-
-                                    // ========================================
-                                    // HERO
-                                    // ========================================
-
                                     SizedBox(
                                       height:
                                       112.h,
@@ -431,20 +384,10 @@ class _OnboardingScreenState
                                         entranceValue,
                                       ),
                                     ),
-
-                                    // ========================================
-                                    // LARGE SPACING
-                                    // ========================================
-
                                     SizedBox(
                                       height:
                                       105.h,
                                     ),
-
-                                    // ========================================
-                                    // NAME AREA
-                                    // ========================================
-
                                     _AnimatedEntrance(
                                       opacity:
                                       entranceValue,
@@ -472,11 +415,6 @@ class _OnboardingScreenState
                                             _continue(),
                                       ),
                                     ),
-
-                                    // ========================================
-                                    // BUTTON
-                                    // ========================================
-
                                     SizedBox(
                                       height:
                                       26.h,
@@ -506,11 +444,6 @@ class _OnboardingScreenState
                                         _continue,
                                       ),
                                     ),
-
-                                    // ========================================
-                                    // FOOTER
-                                    // ========================================
-
                                     SizedBox(
                                       height:
                                       18.h,
@@ -572,11 +505,6 @@ class _OnboardingScreenState
     );
   }
 }
-
-// =============================================================================
-// ANIMATED ENTRANCE
-// =============================================================================
-
 class _AnimatedEntrance
     extends StatelessWidget {
   final double opacity;
@@ -607,11 +535,6 @@ class _AnimatedEntrance
     );
   }
 }
-
-// =============================================================================
-// BRAND
-// =============================================================================
-
 class _BrandMark
     extends StatelessWidget {
   final Color color;
@@ -664,11 +587,6 @@ class _BrandMark
     );
   }
 }
-
-// =============================================================================
-// HERO
-// =============================================================================
-
 class _HeroSection
     extends StatelessWidget {
   final ColorScheme colors;
@@ -759,11 +677,6 @@ class _HeroSection
     );
   }
 }
-
-// =============================================================================
-// NAME SECTION
-// =============================================================================
-
 class _NameSection
     extends StatelessWidget {
   final TextEditingController controller;
@@ -845,11 +758,6 @@ class _NameSection
     );
   }
 }
-
-// =============================================================================
-// NAME FIELD
-// =============================================================================
-
 class _MinimalNameField
     extends StatefulWidget {
   final TextEditingController controller;
@@ -1030,11 +938,6 @@ class _MinimalNameFieldState
     );
   }
 }
-
-// =============================================================================
-// CONTINUE BUTTON
-// =============================================================================
-
 class _ContinueButton
     extends StatelessWidget {
   final Color color;
@@ -1170,11 +1073,6 @@ class _ContinueButton
     );
   }
 }
-
-// =============================================================================
-// CINEMATIC BACKGROUND
-// =============================================================================
-
 class _CinematicBackground
     extends StatelessWidget {
   final Color color;
@@ -1225,10 +1123,6 @@ class _CinematicBackground
         fit:
         StackFit.expand,
         children: [
-          // ================================================================
-          // TOP LIGHT
-          // ================================================================
-
           Positioned(
             left:
             x1,
@@ -1264,11 +1158,6 @@ class _CinematicBackground
               ),
             ),
           ),
-
-          // ================================================================
-          // LOWER LIGHT
-          // ================================================================
-
           Positioned(
             left:
             x2,
@@ -1304,11 +1193,6 @@ class _CinematicBackground
               ),
             ),
           ),
-
-          // ================================================================
-          // SUBTLE CENTER GLOW
-          // ================================================================
-
           Positioned.fill(
             child:
             DecoratedBox(

@@ -73,11 +73,6 @@ class _BottomNavState extends State<BottomNav> {
             return LiquidGlassScaffold(
               backgroundColor:
               theme.scaffoldBackgroundColor,
-
-              // =============================================================
-              // CONTENT + MINI PLAYER
-              // =============================================================
-
               body: Stack(
                 children: [
                   // ---------------------------------------------------------
@@ -113,11 +108,6 @@ class _BottomNavState extends State<BottomNav> {
                     ),
                 ],
               ),
-
-              // =============================================================
-              // LIQUID GLASS NAVIGATION
-              // =============================================================
-
               bottomNavigationBar:
               LiquidGlassBottomNavBar(
                 width: 358.w,
@@ -135,10 +125,6 @@ class _BottomNavState extends State<BottomNav> {
                 itemPadding: 5,
 
                 items: const [
-                  // =========================================================
-                  // HOME
-                  // =========================================================
-
                   LiquidGlassTabBarItem(
                     icon:
                     Hicons.home2LightOutline,
@@ -146,11 +132,6 @@ class _BottomNavState extends State<BottomNav> {
                     Hicons.home2Bold,
                     label: 'Home',
                   ),
-
-                  // =========================================================
-                  // SEARCH
-                  // =========================================================
-
                   LiquidGlassTabBarItem(
                     icon:
                     Hicons.search1LightOutline,
@@ -158,11 +139,6 @@ class _BottomNavState extends State<BottomNav> {
                     Hicons.search1Bold,
                     label: 'Search',
                   ),
-
-                  // =========================================================
-                  // LIBRARY
-                  // =========================================================
-
                   LiquidGlassTabBarItem(
                     icon:
                     Hicons.musicnoteLightOutline,
@@ -170,11 +146,6 @@ class _BottomNavState extends State<BottomNav> {
                     Hicons.musicnoteBold,
                     label: 'Library',
                   ),
-
-                  // =========================================================
-                  // SETTINGS
-                  // =========================================================
-
                   LiquidGlassTabBarItem(
                     icon:
                     Hicons.settingLightOutline,
@@ -192,11 +163,6 @@ class _BottomNavState extends State<BottomNav> {
                     _currentIndex = index;
                   });
                 },
-
-                // =============================================================
-                // NAV ITEM STYLE
-                // =============================================================
-
                 itemStyle:
                 LiquidGlassNavItemStyle(
                   selectedColor:
@@ -219,11 +185,6 @@ class _BottomNavState extends State<BottomNav> {
                   unselectedFontWeight:
                   FontWeight.w600,
                 ),
-
-                // =============================================================
-                // LIQUID MORPH PILL
-                // =============================================================
-
                 pillStyle:
                 LiquidGlassNavPillStyle(
                   mode:
@@ -299,10 +260,6 @@ class _BottomNavState extends State<BottomNav> {
     );
   }
 }
-
-// =============================================================================
-// GLOBAL MINI PLAYER
-// =============================================================================
 //
 // A separate, floating glass mini-player.
 // It intentionally sits above the liquid-glass navigation and does not
@@ -477,10 +434,6 @@ class _GlobalMiniPlayerState
                     children: [
                       Row(
                         children: [
-                          // =================================================
-                          // ARTWORK
-                          // =================================================
-
                           AnimatedScale(
                             scale: isPlaying
                                 ? 1.0
@@ -501,11 +454,6 @@ class _GlobalMiniPlayerState
                           SizedBox(
                             width: 11.w,
                           ),
-
-                          // =================================================
-                          // SONG INFORMATION
-                          // =================================================
-
                           Expanded(
                             child: Column(
                               mainAxisAlignment:
@@ -591,11 +539,6 @@ class _GlobalMiniPlayerState
                                 SizedBox(
                                   height: 5.h,
                                 ),
-
-                                // =================================================
-                                // PROGRESS
-                                // =================================================
-
                                 SizedBox(
                                   height: 3.h,
                                   child: ClipRRect(
@@ -654,11 +597,6 @@ class _GlobalMiniPlayerState
                           SizedBox(
                             width: 8.w,
                           ),
-
-                          // =================================================
-                          // PLAY / PAUSE
-                          // =================================================
-
                           _MiniPlayButton(
                             controller:
                             controller,
@@ -669,11 +607,6 @@ class _GlobalMiniPlayerState
                           ),
                         ],
                       ),
-
-                      // =====================================================
-                      // SUBTLE GLASS SHINE
-                      // =====================================================
-
                       IgnorePointer(
                         child: Align(
                           alignment:
@@ -714,11 +647,6 @@ class _GlobalMiniPlayerState
     );
   }
 }
-
-// =============================================================================
-// MINI ARTWORK
-// =============================================================================
-
 class _MiniArtwork extends StatelessWidget {
   final Song song;
   final bool isPlaying;
@@ -781,11 +709,6 @@ class _MiniArtwork extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// ARTWORK FALLBACK
-// =============================================================================
-
 class _ArtworkFallback extends StatelessWidget {
   final ColorScheme colors;
 
@@ -807,11 +730,6 @@ class _ArtworkFallback extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// MINI PLAY BUTTON
-// =============================================================================
-
 class _MiniPlayButton extends StatelessWidget {
   final MusicController controller;
   final bool isPlaying;

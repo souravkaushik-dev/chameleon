@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hicons/flutter_hicons.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
-
 import '../../data/models/playlist.dart';
 import '../../data/models/song.dart';
 import '../../data/services/music_controller.dart';
@@ -77,10 +76,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   AlwaysScrollableScrollPhysics(),
                 ),
                 slivers: [
-                  // ===========================================================
-                  // HEADER
-                  // ===========================================================
-
                   SliverPadding(
                     padding: EdgeInsets.fromLTRB(
                       22.w,
@@ -105,11 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-
-                  // ===========================================================
-                  // LOADING
-                  // ===========================================================
-
                   if (controller.isHomeLoading)
                     SliverPadding(
                       padding: EdgeInsets.fromLTRB(
@@ -124,11 +114,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         _LoadingIndicator(),
                       ),
                     ),
-
-                  // ===========================================================
-                  // ERROR
-                  // ===========================================================
-
                   if (controller.errorMessage !=
                       null &&
                       !controller.isHomeLoading)
@@ -147,11 +132,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-
-                  // ===========================================================
-                  // RECENTLY PLAYED — APPLE MUSIC STYLE
-                  // ===========================================================
-
                   if (controller.recentlyPlayed.isNotEmpty)
                     SliverPadding(
                       padding: EdgeInsets.fromLTRB(
@@ -182,11 +162,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-
-                  // ===========================================================
-                  // TRENDING
-                  // ===========================================================
-
                   if (controller
                       .trendingSongs.isNotEmpty)
                     SliverPadding(
@@ -219,11 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-
-                  // ===========================================================
-                  // ARTISTS
-                  // ===========================================================
-
                   if (controller
                       .trendingArtists.isNotEmpty)
                     SliverPadding(
@@ -262,11 +232,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-
-                  // ===========================================================
-                  // SUGGESTED
-                  // ===========================================================
-
                   if (controller
                       .suggestedSongs.isNotEmpty)
                     SliverPadding(
@@ -317,11 +282,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
                     ),
-
-                  // ===========================================================
-                  // PLAYLISTS
-                  // ===========================================================
-
                   if (controller
                       .playlists.isNotEmpty)
                     SliverPadding(
@@ -353,11 +313,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-
-                  // ===========================================================
-                  // FAVORITES
-                  // ===========================================================
-
                   if (controller
                       .favorites.isNotEmpty)
                     SliverPadding(
@@ -405,11 +360,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
                     ),
-
-                  // ===========================================================
-                  // EMPTY
-                  // ===========================================================
-
                   if (!controller.isHomeLoading &&
                       controller
                           .trendingSongs.isEmpty &&
@@ -438,11 +388,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-
-// =============================================================================
-// PLAY + OPEN NOW PLAYING
-// =============================================================================
-
 Future<void> _playAndOpenNowPlaying(
     BuildContext context, {
       required Song song,
@@ -519,12 +464,6 @@ Future<void> _playAndOpenNowPlaying(
     ),
   );
 }
-
-
-// =============================================================================
-// SONG ACTIONS
-// =============================================================================
-
 Future<void> _showSongOptions(
     BuildContext context,
     Song song, {
@@ -620,7 +559,7 @@ Future<void> _showSongOptions(
                 },
               ),
               _OptionTile(
-                icon: Icons.queue_music_rounded,
+                  icon: Hicons.musicFilterBold,
                 title: 'Add to queue',
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -629,7 +568,7 @@ Future<void> _showSongOptions(
                 },
               ),
               _OptionTile(
-                icon: Icons.playlist_add_rounded,
+                icon: Hicons.folder1LightOutline,
                 title: 'Add to playlist',
                 onTap: () async {
                   Navigator.pop(sheetContext);
@@ -637,7 +576,7 @@ Future<void> _showSongOptions(
                 },
               ),
               _OptionTile(
-                icon: Icons.play_arrow_rounded,
+                icon: Hicons.playLightOutline,
                 title: 'Play now',
                 onTap: () async {
                   Navigator.pop(sheetContext);
@@ -715,7 +654,7 @@ Future<void> _showHomePlaylistPicker(
                         Navigator.pop(sheetContext);
                         _showHomeCreatePlaylistForSong(context, song);
                       },
-                      icon: const Icon(Icons.add_rounded),
+                      icon: const Icon(Hicons.addLightOutline),
                     ),
                   ],
                 ),
@@ -927,11 +866,6 @@ class _PlaylistOption extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// HEADER
-// =============================================================================
-
 class _Header extends StatelessWidget {
   final VoidCallback onSearch;
 
@@ -1023,11 +957,6 @@ class _Header extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// SECTION TITLE
-// =============================================================================
-
 class _SectionTitle
     extends StatelessWidget {
   final String title;
@@ -1080,11 +1009,6 @@ class _SectionTitle
     );
   }
 }
-
-// =============================================================================
-// RECENTLY PLAYED LIST
-// =============================================================================
-
 class _RecentlyPlayedList extends StatelessWidget {
   final List<Song> songs;
 
@@ -1119,11 +1043,6 @@ class _RecentlyPlayedList extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// RECENTLY PLAYED CARD
-// =============================================================================
-
 class _RecentlyPlayedCard extends StatelessWidget {
   final Song song;
   final int index;
@@ -1204,7 +1123,7 @@ class _RecentlyPlayedCard extends StatelessWidget {
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
-                            Icons.more_horiz_rounded,
+                            Hicons.menuHamburger1LightOutline,
                             color: Colors.white,
                             size: 22.sp,
                           ),
@@ -1272,11 +1191,6 @@ class _RecentlyPlayedCard extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// TRENDING LIST
-// =============================================================================
-
 class _TrendingList
     extends StatelessWidget {
   final List<Song> songs;
@@ -1315,11 +1229,6 @@ class _TrendingList
     );
   }
 }
-
-// =============================================================================
-// TRENDING CARD
-// =============================================================================
-
 class _TrendingCard
     extends StatelessWidget {
   final Song song;
@@ -1453,11 +1362,6 @@ class _TrendingCard
     );
   }
 }
-
-// =============================================================================
-// ARTISTS
-// =============================================================================
-
 class _ArtistList
     extends StatelessWidget {
   final List<String> artists;
@@ -1573,11 +1477,6 @@ class _ArtistChip
     );
   }
 }
-
-// =============================================================================
-// SONG TILE
-// =============================================================================
-
 class _SongTile
     extends StatelessWidget {
   final Song song;
@@ -1763,11 +1662,6 @@ class _SongTile
     );
   }
 }
-
-// =============================================================================
-// PLAYLISTS
-// =============================================================================
-
 class _PlaylistList
     extends StatelessWidget {
   final List<Playlist> playlists;
@@ -1899,11 +1793,6 @@ class _PlaylistCard
     );
   }
 }
-
-// =============================================================================
-// PLAYLIST ARTWORK
-// =============================================================================
-
 class _PlaylistArtwork
     extends StatelessWidget {
   final List<Song> songs;
@@ -1955,11 +1844,6 @@ class _PlaylistArtwork
     );
   }
 }
-
-// =============================================================================
-// ARTWORK
-// =============================================================================
-
 class _Artwork
     extends StatelessWidget {
   final String? url;
@@ -2041,11 +1925,6 @@ class _Artwork
     );
   }
 }
-
-// =============================================================================
-// EMPTY ARTWORK
-// =============================================================================
-
 class _EmptyArtwork
     extends StatelessWidget {
   const _EmptyArtwork();
@@ -2069,11 +1948,6 @@ class _EmptyArtwork
     );
   }
 }
-
-// =============================================================================
-// LOADING
-// =============================================================================
-
 class _LoadingIndicator
     extends StatelessWidget {
   const _LoadingIndicator();
@@ -2113,11 +1987,6 @@ class _LoadingIndicator
     );
   }
 }
-
-// =============================================================================
-// ERROR
-// =============================================================================
-
 class _ErrorPill
     extends StatelessWidget {
   final String message;
@@ -2168,11 +2037,6 @@ class _ErrorPill
     );
   }
 }
-
-// =============================================================================
-// EMPTY HOME
-// =============================================================================
-
 class _EmptyHome
     extends StatelessWidget {
   const _EmptyHome();
@@ -2238,11 +2102,6 @@ class _EmptyHome
     );
   }
 }
-
-// =============================================================================
-// SEARCH SHEET
-// =============================================================================
-
 class _SearchSheet
     extends StatefulWidget {
   final String initialQuery;
@@ -2565,11 +2424,6 @@ class _SearchSheetState
     );
   }
 }
-
-// =============================================================================
-// SEARCH RESULTS
-// =============================================================================
-
 class _SearchResults
     extends StatelessWidget {
   final ScrollController
@@ -2732,11 +2586,6 @@ class _SearchResults
     );
   }
 }
-
-// =============================================================================
-// SEARCH RESULT TILE
-// =============================================================================
-
 class _SearchResultTile
     extends StatelessWidget {
   final Song song;

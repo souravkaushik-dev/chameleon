@@ -44,11 +44,6 @@ class _SettingsScreenState
       setState(() {});
     }
   }
-
-  // ===========================================================================
-  // THEME
-  // ===========================================================================
-
   Future<void> _showThemePicker() async {
     final selected =
     await showModalBottomSheet<ThemeMode>(
@@ -98,11 +93,6 @@ class _SettingsScreenState
       );
     }
   }
-
-  // ===========================================================================
-  // RECENTLY PLAYED LIMIT
-  // ===========================================================================
-
   Future<void> _showRecentLimit() async {
     final selected =
     await showModalBottomSheet<int>(
@@ -152,11 +142,6 @@ class _SettingsScreenState
       );
     }
   }
-
-  // ===========================================================================
-  // RESET
-  // ===========================================================================
-
   Future<void> _resetSettings() async {
     final confirmed =
     await showDialog<bool>(
@@ -219,11 +204,6 @@ class _SettingsScreenState
       'Settings restored',
     );
   }
-
-  // ===========================================================================
-  // MESSAGE
-  // ===========================================================================
-
   void _showMessage(
       String message,
       ) {
@@ -256,11 +236,6 @@ class _SettingsScreenState
         ),
       );
   }
-
-  // ===========================================================================
-  // THEME NAME
-  // ===========================================================================
-
   String _themeName(
       ThemeMode mode,
       ) {
@@ -275,11 +250,6 @@ class _SettingsScreenState
         return 'System default';
     }
   }
-
-  // ===========================================================================
-  // BUILD
-  // ===========================================================================
-
   @override
   Widget build(
       BuildContext context,
@@ -299,10 +269,6 @@ class _SettingsScreenState
         const BouncingScrollPhysics(),
 
         slivers: [
-          // =================================================================
-          // HEADER
-          // =================================================================
-
           SliverAppBar(
             pinned: true,
             elevation: 0,
@@ -323,11 +289,6 @@ class _SettingsScreenState
               ),
             ),
           ),
-
-          // =================================================================
-          // HERO
-          // =================================================================
-
           SliverToBoxAdapter(
             child: Padding(
               padding:
@@ -353,11 +314,6 @@ class _SettingsScreenState
               ),
             ),
           ),
-
-          // =================================================================
-          // APPEARANCE
-          // =================================================================
-
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'Appearance',
@@ -378,11 +334,6 @@ class _SettingsScreenState
               ],
             ),
           ),
-
-          // =================================================================
-          // PLAYER
-          // =================================================================
-
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'Player',
@@ -404,11 +355,6 @@ class _SettingsScreenState
               ],
             ),
           ),
-
-          // =================================================================
-          // SEARCH
-          // =================================================================
-
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'Search',
@@ -429,11 +375,6 @@ class _SettingsScreenState
               ],
             ),
           ),
-
-          // =================================================================
-          // LIBRARY
-          // =================================================================
-
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'Library',
@@ -453,11 +394,6 @@ class _SettingsScreenState
               ],
             ),
           ),
-
-          // =================================================================
-          // ABOUT
-          // =================================================================
-
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'About',
@@ -520,11 +456,6 @@ class _SettingsScreenState
               ],
             ),
           ),
-
-          // =================================================================
-          // RESET
-          // =================================================================
-
           SliverToBoxAdapter(
             child: Padding(
               padding:
@@ -541,11 +472,6 @@ class _SettingsScreenState
               ),
             ),
           ),
-
-          // =================================================================
-          // FOOTER
-          // =================================================================
-
           SliverToBoxAdapter(
             child: Padding(
               padding:
@@ -605,11 +531,6 @@ class _SettingsScreenState
     );
   }
 }
-
-// =============================================================================
-// HERO
-// =============================================================================
-
 class _SettingsHero
     extends StatelessWidget {
   final Color color;
@@ -702,11 +623,6 @@ class _SettingsHero
     );
   }
 }
-
-// =============================================================================
-// SECTION
-// =============================================================================
-
 class _SettingsSection
     extends StatelessWidget {
   final String title;
@@ -824,11 +740,6 @@ class _SettingsSection
     );
   }
 }
-
-// =============================================================================
-// DIVIDER
-// =============================================================================
-
 class _SoftDivider
     extends StatelessWidget {
   const _SoftDivider();
@@ -859,11 +770,6 @@ class _SoftDivider
     );
   }
 }
-
-// =============================================================================
-// SETTINGS TILE
-// =============================================================================
-
 class _SettingsTile
     extends StatelessWidget {
   final IconData icon;
@@ -991,11 +897,6 @@ class _SettingsTile
     );
   }
 }
-
-// =============================================================================
-// ANIMATED SWITCH TILE
-// =============================================================================
-
 class _AnimatedSwitchTile
     extends StatefulWidget {
   final IconData icon;
@@ -1136,11 +1037,6 @@ class _AnimatedSwitchTileState
     );
   }
 }
-
-// =============================================================================
-// SWITCH
-// =============================================================================
-
 class _AnimatedSwitch extends StatelessWidget {
   final bool value;
   final VoidCallback onTap;
@@ -1185,11 +1081,6 @@ class _AnimatedSwitch extends StatelessWidget {
     );
   }
 }
-
-// =============================================================================
-// ICON
-// =============================================================================
-
 class _SettingsIcon
     extends StatelessWidget {
   final IconData icon;
@@ -1263,11 +1154,6 @@ class _SettingsIcon
     );
   }
 }
-
-// =============================================================================
-// CHOICE ITEM
-// =============================================================================
-
 class _ChoiceItem<T> {
   final T value;
   final String title;
@@ -1281,11 +1167,6 @@ class _ChoiceItem<T> {
     required this.icon,
   });
 }
-
-// =============================================================================
-// CHOICE SHEET
-// =============================================================================
-
 class _ChoiceSheet<T>
     extends StatelessWidget {
   final String title;
@@ -1409,11 +1290,6 @@ class _ChoiceSheet<T>
     );
   }
 }
-
-// =============================================================================
-// CHOICE ROW
-// =============================================================================
-
 class _ChoiceRow<T>
     extends StatelessWidget {
   final _ChoiceItem<T> item;
@@ -1567,11 +1443,6 @@ class _ChoiceRow<T>
     );
   }
 }
-
-// =============================================================================
-// SHEET HANDLE
-// =============================================================================
-
 class _SheetHandle
     extends StatelessWidget {
   const _SheetHandle();
@@ -1603,11 +1474,6 @@ class _SheetHandle
     );
   }
 }
-
-// =============================================================================
-// COMING SOON
-// =============================================================================
-
 class _ComingSoonBadge
     extends StatelessWidget {
   final Color color;
@@ -1651,11 +1517,6 @@ class _ComingSoonBadge
     );
   }
 }
-
-// =============================================================================
-// RESET TILE
-// =============================================================================
-
 class _ResetTile
     extends StatelessWidget {
   final Color color;

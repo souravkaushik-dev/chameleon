@@ -69,11 +69,6 @@ class SettingsService extends ChangeNotifier {
   String _downloadQuality = 'High';
 
   int _recentLimit = 50;
-
-  // ===========================================================================
-  // GETTERS
-  // ===========================================================================
-
   ThemeMode get themeMode => _themeMode;
 
   int get accentColor => _accentColor;
@@ -110,11 +105,6 @@ class SettingsService extends ChangeNotifier {
       _downloadQuality;
 
   int get recentLimit => _recentLimit;
-
-  // ===========================================================================
-  // INITIALIZE
-  // ===========================================================================
-
   Future<void> initialize() async {
     final theme =
     await _preferences.getString(
@@ -223,11 +213,6 @@ class SettingsService extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  // ===========================================================================
-  // THEME
-  // ===========================================================================
-
   Future<void> setThemeMode(
       ThemeMode mode,
       ) async {
@@ -246,11 +231,6 @@ class SettingsService extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  // ===========================================================================
-  // ACCENT COLOR
-  // ===========================================================================
-
   Future<void> setAccentColor(
       Color color,
       ) async {
@@ -263,11 +243,6 @@ class SettingsService extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  // ===========================================================================
-  // PLAYBACK
-  // ===========================================================================
-
   Future<void> setCrossfade(
       bool value,
       ) async {
@@ -332,11 +307,6 @@ class SettingsService extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  // ===========================================================================
-  // PLAYER
-  // ===========================================================================
-
   Future<void> setAnimatedArtwork(
       bool value,
       ) async {
@@ -375,11 +345,6 @@ class SettingsService extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  // ===========================================================================
-  // SEARCH
-  // ===========================================================================
-
   Future<void> setSaveSearches(
       bool value,
       ) async {
@@ -392,11 +357,6 @@ class SettingsService extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  // ===========================================================================
-  // NOTIFICATIONS
-  // ===========================================================================
-
   Future<void> setNotifications(
       bool value,
       ) async {
@@ -409,11 +369,6 @@ class SettingsService extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  // ===========================================================================
-  // DOWNLOADS
-  // ===========================================================================
-
   Future<void> setWifiOnly(
       bool value,
       ) async {
@@ -439,11 +394,6 @@ class SettingsService extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  // ===========================================================================
-  // LIBRARY
-  // ===========================================================================
-
   Future<void> setRecentLimit(
       int value,
       ) async {
@@ -456,11 +406,6 @@ class SettingsService extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  // ===========================================================================
-  // RESET
-  // ===========================================================================
-
   Future<void> reset() async {
     await _preferences.remove(
       _themeModeKey,
