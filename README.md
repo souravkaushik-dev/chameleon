@@ -1,83 +1,188 @@
 # 🎵 Chameleon
 
 <p align="center">
-  <img src="assets/logo/logo.svg" width="120" alt="Chameleon Logo">
-</p>
-
-<h1 align="center">Chameleon</h1>
-
-<p align="center">
-  A cinematic, minimal music player built with Flutter.
+  <strong>A cinematic music player built around the music, not the interface.</strong>
 </p>
 
 <p align="center">
-  <b>Good music, no noise.</b>
+  Beautiful artwork · Smooth playback · Liquid Glass · Real-time Equalizer
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.0.1--2-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/status-early%20production-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/platform-Android-green?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/built%20with-Flutter-02569B?style=for-the-badge&logo=flutter" />
 </p>
 
 ---
 
-Chameleon is a modern music player focused on **beautiful artwork, smooth interactions, simple controls, and an immersive listening experience**.
+## 🎬 The Idea
 
-Built with a clean, cinematic interface where the music stays at the center.
+Chameleon is a modern music player designed around one simple idea:
+
+> **Make listening feel cinematic.**
+
+The interface stays quiet.
+
+The artwork takes center stage.
+
+Controls appear when you need them.
+
+Music remains the focus.
+
+Chameleon combines a minimal player experience with cinematic artwork, smooth animations, Liquid Glass navigation, YouTube-powered music discovery, background playback, playlists, and a real-time audio equalizer.
 
 ---
 
-## ✨ Features
+## ⚠️ Early Production Build
 
-### 🎧 Music Playback
+**Chameleon is still in early production and active development.**
 
-- [x] ▶️ Music playback
-- [x] ⏯️ Play / pause
-- [x] ⏮️ Previous song
+`v1.0.1+2` is an early build focused on improving the audio experience, introducing the real-time equalizer, and refining the overall interface.
+
+Some playback features are still being polished, particularly:
+
+- Next-track reliability
+- Queue playback
+- Automatic track transitions
+- Playback edge cases
+- Startup performance
+- Notification synchronization
+
+Expect changes, improvements, and occasional bugs while development continues.
+
+Feedback and bug reports are welcome.
+
+---
+
+# ✨ What's New in v1.0.1
+
+## 🎚️ Real-Time Equalizer
+
+Chameleon now includes a real audio equalizer.
+
+- [x] 🎚️ Real-time frequency adjustment
+- [x] 🎛️ Individual frequency bands
+- [x] 🔊 Bass control
+- [x] 🎤 Vocal optimization
+- [x] 🎵 Treble control
+- [x] ✨ Live changes during playback
+- [x] 🔄 Enable / disable equalizer
+- [x] ↩️ Reset equalizer
+- [x] 🎧 Native audio processing
+
+### Presets
+
+- [x] Flat
+- [x] Bass
+- [x] Treble
+- [x] Vocal
+- [x] Pop
+- [x] Rock
+- [x] Classical
+- [x] Dance
+
+The equalizer is connected to the existing playback engine, so adjustments affect the music currently being played.
+
+---
+
+# 🎧 Music Playback
+
+Chameleon provides a focused playback experience built around fast access to your music.
+
+### Playback
+
+- [x] ▶️ Play / pause
+- [x] ⏮️ Previous track
 - [x] 🎚️ Seek through songs
 - [x] 🎵 Mini player
-- [x] 🖼️ Full-screen cinematic player
-- [x] 🎨 Large artwork-focused player
+- [x] 🎬 Full-screen player
+- [x] 🖼️ Large artwork-focused player
 - [x] ❤️ Like / unlike songs
 - [x] ➕ Add to playlist
 - [x] 📋 Add to queue
-- [ ] ⏭️ Next song reliability — **bug fixes pending**
-- [ ] 📋 Queue playback — **bug fixes pending**
-- [ ] 🔄 Automatic next-track transition — **under development**
-- [ ] ⚡ Faster song startup — **optimization pending**
+- [x] 🔊 Background audio foundation
+- [x] 🎚️ Real-time equalizer
+- [ ] ⏭️ Next-track reliability
+- [ ] 🔄 Automatic next-track transition
+- [ ] 📋 Queue playback reliability
+- [ ] ⚡ Faster startup
 
 ---
 
-## 🏠 Home
+# 🎬 The Player
 
-- [x] 🎵 Recently played songs
-- [x] 🖼️ Large cinematic music cards
-- [x] 🔥 Trending songs
+The player is designed to disappear into the experience.
+
+Large artwork.
+
+Minimal controls.
+
+Smooth transitions.
+
+Music first.
+
+### Cinematic Player
+
+- [x] 🖼️ Full-screen artwork
+- [x] 🎨 Large artwork presentation
+- [x] ▶️ Play / pause
+- [x] ⏮️ Previous
+- [x] 🎚️ Seek
+- [x] ❤️ Like
+- [x] ⋯ More actions
+- [x] ➕ Add to playlist
+- [x] 📋 Add to queue
+- [x] 🎵 Mini player
+- [x] 📋 Queue access
+- [x] 🎚️ Equalizer access
+
+---
+
+# 🏠 Home
+
+Your music starts here.
+
+The Home experience is built around recently played music, discovery, and artwork.
+
+- [x] 🎵 Recently played
+- [x] 🖼️ Cinematic music cards
+- [x] 🔥 Trending music
 - [x] 🎧 Recently played section
 - [x] ▶️ Quick playback
-- [x] ⋯ Song action menu
+- [x] ⋯ Song actions
 - [x] ❤️ Like from song menu
 - [x] ➕ Add to playlist
 - [x] 📋 Add to queue
-- [x] 🎨 Artwork-focused interface
-- [x] 🎬 Cinematic visual design
+- [x] 🎨 Artwork-first design
+- [x] 🎬 Cinematic visual language
 
 ---
 
-## 🔎 Search
+# 🔎 Search
 
-- [x] 🔍 Fast music search
-- [x] 🕘 Recent search history
+Discover music without leaving the experience.
+
+- [x] 🔍 YouTube-powered music search
+- [x] ⚡ Fast search experience
+- [x] 🕘 Search history
 - [x] 🎧 Recently played
-- [x] ⚡ Quick search experience
 - [x] ▶️ Play search results
-- [x] ⋯ Song action menu
+- [x] ⋯ Song actions
 - [x] ❤️ Like songs
 - [x] ➕ Add to playlist
 - [x] 📋 Add to queue
 - [x] 🎵 Mini player
-- [ ] ⚡ Search performance improvements — **ongoing**
+- [ ] ⚡ Further search optimization
 
 ---
 
-## 📚 Library
+# 📚 Library
 
-### ❤️ Liked Songs
+Your music, organized your way.
+
+## ❤️ Liked Songs
 
 - [x] ❤️ Liked songs collection
 - [x] ▶️ Play liked songs
@@ -85,136 +190,123 @@ Built with a clean, cinematic interface where the music stays at the center.
 - [x] ➕ Add to playlist
 - [x] 📋 Add to queue
 - [x] 🗑️ Remove liked songs
-- [x] 💾 Local persistence
+- [x] 💾 Persistent storage
 
-### 🎵 Playlists
+## 🎵 Playlists
 
 - [x] ➕ Create playlist
 - [x] ✏️ Rename playlist
 - [x] 🗑️ Delete playlist
-- [x] 🎵 Add songs to playlist
+- [x] 🎵 Add songs
 - [x] 🎵 Add multiple songs
-- [x] 🗑️ Remove songs from playlist
+- [x] 🗑️ Remove songs
 - [x] ▶️ Play playlist
-- [x] 💾 Local playlist persistence
+- [x] 💾 Persistent playlists
 
-### 🕘 Recently Played
+## 🕘 Recently Played
 
-- [x] 🕘 Recently played songs
-- [x] 🔄 Automatically update history
+- [x] 🕘 Playback history
+- [x] 🔄 Automatic updates
 - [x] 💾 Local persistence
 - [x] ▶️ Instant playback
 
 ---
 
-## 🎬 Player
+# 🧊 Liquid Glass
 
-- [x] 🖼️ Full-screen cinematic artwork
-- [x] 🎨 Large artwork
-- [x] ▶️ Play / pause
-- [x] ⏮️ Previous song
-- [x] 🎚️ Seek controls
-- [x] ❤️ Like
-- [x] ⋯ More actions
-- [x] ➕ Add to playlist
-- [x] 📋 Add to queue
-- [x] 🎵 Mini player
-- [x] 📋 Queue access
+Navigation isn't just navigation.
 
-### 🚧 Playback Improvements
+Chameleon uses a floating Liquid Glass interface to keep the app feeling alive without overwhelming the music.
 
-- [ ] ⏭️ **Next song reliability**
-- [ ] 📋 **Queue playback reliability**
-- [ ] 🔄 **Automatic next-track transition**
-- [ ] ⚡ **Faster song startup**
-- [ ] 🎵 **Playback stability**
-- [ ] 🐞 **Playback edge-case fixes**
-
----
-
-## 🧊 Liquid Glass Navigation
-
-- [x] 🧊 Floating liquid-glass navigation
-- [x] ✨ Animated navigation selection
-- [x] 🏠 Home navigation
-- [x] 🔍 Search navigation
-- [x] 📚 Library navigation
-- [x] ⚙️ Settings navigation
-- [x] 🔎 Glass magnification effect
-- [x] 💧 Glass refraction
+- [x] 🧊 Floating Liquid Glass navigation
+- [x] ✨ Animated selection
+- [x] 🏠 Home
+- [x] 🔎 Search
+- [x] 📚 Library
+- [x] ⚙️ Settings
+- [x] 🔍 Glass magnification
+- [x] 💧 Refraction
 - [x] 🫧 Jelly / morph animation
-- [x] 🌗 Light & dark theme support
-- [x] 📱 Floating navigation layout
+- [x] 🌗 Light / dark themes
+- [x] 📱 Floating navigation
 
 ---
 
-## 🔔 Lock Screen & Notification
+# 🔔 Background Playback
+
+Chameleon is designed to keep the music playing while you move through the app.
 
 - [x] 🔔 Background playback foundation
 - [x] 🎵 Current song metadata
 - [x] 🖼️ Artwork support
-- [x] ⏯️ Play / pause control
-- [x] ⏮️ Previous control
-- [ ] ⏭️ Next control reliability — **bug fixes pending**
-- [ ] 📋 Queue synchronization — **bug fixes pending**
-- [ ] 🔄 Automatic next-track control — **under development**
-- [ ] 🎚️ Advanced system media controls — **coming soon**
+- [x] ⏯️ Play / pause
+- [x] ⏮️ Previous
+- [ ] ⏭️ Next reliability
+- [ ] 📋 Queue synchronization
+- [ ] 🔄 Automatic next-track control
+- [ ] 🎚️ Advanced system media controls
 
 ---
 
-## ⚙️ Settings
+# ⚙️ Settings
+
+Settings are designed to stay simple while giving you control over the experience.
 
 - [x] ☀️ Light theme
 - [x] 🌙 Dark theme
-- [x] ⚙️ App settings
-- [x] 🎨 Chameleon app theme
-- [x] 🔄 Animated settings switches
+- [x] 🎨 Chameleon theme
+- [x] 🔄 Animated settings controls
 - [x] 💾 Persistent settings
 - [x] 🧹 Clear recently played
 - [x] ❤️ Clear liked songs
 - [x] 📚 Manage library data
+- [x] 🎚️ Equalizer
+- [x] 🎛️ Audio presets
+- [x] ✨ Liquid Glass controls
+- [x] ℹ️ About Chameleon
 
-### 🚧 Settings Coming Soon
-
-The Settings section is still being expanded.
+### Coming Soon
 
 - [ ] 🎧 Advanced playback settings
-- [ ] 🎚️ Audio preferences
+- [ ] 🔊 More audio controls
 - [ ] 📋 Queue preferences
 - [ ] 🔔 Notification preferences
 - [ ] 🔒 Lock-screen preferences
 - [ ] 🎨 More appearance customization
 - [ ] ✨ Animation preferences
 - [ ] 🧹 Cache management
-- [ ] 🔊 Additional audio controls
 - [ ] ⚡ Performance options
-- [ ] 🧩 More personalization options
+- [ ] 🧩 More personalization
 
 ---
 
-## 💾 Local Storage
+# 💾 Local Data
 
-- [x] ❤️ Favorite songs persistence
-- [x] 🕘 Recently played persistence
-- [x] 🎵 Playlist persistence
-- [x] 🔎 Search history persistence
-- [x] ⚙️ Settings persistence
-- [x] 🔄 Restore data after app restart
+Chameleon keeps important user preferences available between launches.
+
+- [x] ❤️ Favorite songs
+- [x] 🕘 Recently played
+- [x] 🎵 Playlists
+- [x] 🔎 Search history
+- [x] ⚙️ Settings
+- [x] 🔄 Restore data after restart
 
 ---
 
-## 🎨 Design
+# 🎨 Design Philosophy
 
-Chameleon is designed around one idea:
+Chameleon follows a simple visual philosophy:
 
-> **Make listening feel cinematic.**
+> **Less interface. More music.**
+
+### Visual Principles
 
 - [x] Minimal interface
 - [x] Large artwork
 - [x] Cinematic player
 - [x] Smooth animations
 - [x] Floating navigation
-- [x] Liquid glass UI
+- [x] Liquid Glass UI
 - [x] Dark mode
 - [x] Light mode
 - [x] Clean typography
@@ -223,36 +315,35 @@ Chameleon is designed around one idea:
 
 ---
 
-## 🐛 Known Issues
+# 🐛 Known Issues
 
 Chameleon is still under active development.
 
-The following areas are currently being improved:
+Current areas being improved:
 
-- [ ] ⏭️ **Next song** — next-track behavior needs fixing.
-- [ ] 📋 **Queue** — queue playback and ordering need improvements.
-- [ ] 🔄 **Automatic next song** — transition between tracks needs work.
-- [ ] ⚡ **Song startup speed** — some songs may take longer to start.
-- [ ] 🎵 **Playback stability** — some playback edge cases remain.
-- [ ] 🔔 **Notification controls** — system playback integration is still being polished.
-- [ ] 🔒 **Lock-screen controls** — synchronization improvements are pending.
-- [ ] 🐞 **General bugs** — additional bugs are being identified and fixed.
-- [ ] 🚀 **Performance** — further optimization is planned.
+- [ ] ⏭️ **Next track** — reliability improvements needed
+- [ ] 📋 **Queue** — playback and ordering improvements
+- [ ] 🔄 **Automatic next track** — transition improvements
+- [ ] ⚡ **Startup speed** — some songs may take longer to begin
+- [ ] 🎵 **Playback stability** — edge cases remain
+- [ ] 🔔 **Notification controls** — integration is still being polished
+- [ ] 🔒 **Lock-screen controls** — synchronization improvements
+- [ ] 🐞 **General bugs** — ongoing fixes
+- [ ] 🚀 **Performance** — continued optimization
 
-> The project is actively being developed, so occasional bugs and unfinished playback behavior are expected.
+> Chameleon is an early production build. Some unfinished behavior is expected while the playback engine continues to evolve.
 
 ---
 
-## 🚧 Coming Soon
+# 🚧 Coming Soon
 
-- [ ] 📱 **Google Play Store release**
+- [ ] 📱 Google Play Store release
 - [ ] 📥 Offline music support
-- [ ] 🎚️ Advanced audio controls
-- [ ] 🎧 More audio settings
+- [ ] 🎧 Advanced audio controls
 - [ ] 📊 Listening statistics
 - [ ] 🎨 More player visualizations
-- [ ] 🧩 More customization options
-- [ ] ⚡ Further playback optimization
+- [ ] 🧩 More customization
+- [ ] ⚡ Playback optimization
 - [ ] 🔄 Improved queue system
 - [ ] ⏭️ Improved next-track system
 - [ ] 🔔 Improved notification controls
@@ -262,9 +353,9 @@ The following areas are currently being improved:
 
 ---
 
-## 🔮 Future Ideas
+# 🔮 Future Ideas
 
-These are ideas being considered for future versions:
+Ideas being explored for future versions:
 
 - [ ] 🎤 Lyrics
 - [ ] 👤 Artist pages
@@ -274,31 +365,31 @@ These are ideas being considered for future versions:
 - [ ] 🎶 Smart queue
 - [ ] 😴 Sleep timer
 - [ ] 🔀 Crossfade
-- [ ] 🎚️ Equalizer
 - [ ] ⏩ Playback speed
 - [ ] 📊 Advanced listening statistics
 - [ ] 🔗 Playlist sharing
 - [ ] 🎵 Music sharing
-- [ ] 🎨 More dynamic player themes
+- [ ] 🎨 Dynamic player themes
 
-> Future ideas are subject to change and are not guaranteed features.
+> Future ideas are exploratory and are not guaranteed features.
 
 ---
 
-## 🗺️ Roadmap
+# 🗺️ Roadmap
 
 | Feature | Status |
-| -------------------------- | --------------------------------- |
-| Music playback | 🟡 Working — improvements pending |
+|---|---|
+| Music playback | 🟡 Working — improvements ongoing |
 | Play / Pause | ✅ Done |
-| Previous song | ✅ Done |
-| Next song | 🚧 Bug fixes pending |
-| Queue | 🚧 Bug fixes pending |
+| Previous track | ✅ Done |
+| Next track | 🚧 Reliability improvements |
+| Queue | 🚧 Improvements ongoing |
 | Queue playback | 🚧 Under development |
 | Automatic next track | 🚧 Under development |
-| Song startup speed | 🚧 Optimization pending |
+| Startup performance | 🚧 Optimization ongoing |
 | Mini player | ✅ Done |
 | Full-screen player | ✅ Done |
+| Cinematic player | ✅ Done |
 | Recently played | ✅ Done |
 | Liked songs | ✅ Done |
 | Playlists | ✅ Done |
@@ -306,27 +397,31 @@ These are ideas being considered for future versions:
 | Search history | ✅ Done |
 | Library | ✅ Done |
 | Settings foundation | ✅ Done |
-| Advanced Settings | 🚧 Coming Soon |
-| Light theme | ✅ Done |
-| Dark theme | ✅ Done |
-| Liquid glass navigation | ✅ Done |
+| About screen | ✅ Done |
+| Real-time Equalizer | ✅ Done |
+| Equalizer presets | ✅ Done |
+| Liquid Glass navigation | ✅ Done |
 | Glass magnification | ✅ Done |
 | Glass refraction | ✅ Done |
-| Jelly navigation animation | ✅ Done |
-| Lock-screen controls | 🚧 Improvements pending |
-| Notification controls | 🚧 Improvements pending |
-| Offline playback | 🚧 Coming Soon |
-| Advanced audio controls | 🚧 Coming Soon |
-| Listening statistics | 🚧 Coming Soon |
-| Google Play Store | 🚧 Coming Soon |
+| Jelly navigation | ✅ Done |
+| Light theme | ✅ Done |
+| Dark theme | ✅ Done |
+| Background playback | 🟡 Working — improvements ongoing |
+| Notification controls | 🚧 Improvements ongoing |
+| Lock-screen controls | 🚧 Improvements ongoing |
+| Offline playback | 🚧 Coming soon |
+| Listening statistics | 🚧 Coming soon |
+| Google Play Store | 🚧 Coming soon |
 
 ---
 
-## 🛠️ Built With
+# 🛠️ Built With
 
-- Flutter
-- Dart
-- Material Design
+Chameleon is built with:
+
+- **Flutter**
+- **Dart**
+- **Material Design**
 - `just_audio`
 - `audio_service`
 - `youtube_explode_dart`
@@ -339,7 +434,7 @@ These are ideas being considered for future versions:
 
 ---
 
-## 📱 Platform
+# 📱 Platform
 
 ### Current
 
@@ -351,9 +446,9 @@ These are ideas being considered for future versions:
 
 ---
 
-## 🚀 Getting Started
+# 🚀 Getting Started
 
-### Prerequisites
+## Prerequisites
 
 Make sure you have:
 
@@ -363,7 +458,8 @@ Make sure you have:
 - Android SDK
 - A connected Android device or emulator
 
-### Clone
+## Clone
 
 ```bash
 git clone https://github.com/souravkaushik-dev/chameleon.git
+cd chameleon
