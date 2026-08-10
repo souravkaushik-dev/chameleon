@@ -23,13 +23,97 @@ class _HomeScreenState extends State<HomeScreen> {
   final MusicController controller =
       MusicControllerProvider.instance;
 
+  List<Song> _suggestedSongs = const <Song>[];
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeHome();
+    });
+  }
+
+  Future<void> _initializeHome() async {
+    if (!controller.isHomeLoading &&
+        controller.trendingSongs.isEmpty &&
+        controller.suggestedSongs.isEmpty) {
+      try {
+        await controller.refreshHome();
+      } catch (_) {}
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    await _loadSuggestedSongs();
   }
 
   Future<void> _refresh() async {
-    await controller.refreshHome();
+    try {
+      await controller.refreshHome();
+    } finally {
+      if (mounted) {
+        await _loadSuggestedSongs();
+      }
+    }
+  }
+
+  Future<void> _loadSuggestedSongs() async {
+    final source = <Song>[
+      ...controller.suggestedSongs,
+      ...controller.trendingSongs,
+      ...controller.recentlyPlayed,
+    ];
+
+    final currentId = controller.currentSong?.id;
+    final seenIds = <String>{};
+    final seenTitles = <String>{};
+    final result = <Song>[];
+
+    String normalizeTitle(String value) {
+      return value
+          .toLowerCase()
+          .replaceAll(RegExp(r'\([^)]*\)'), '')
+          .replaceAll(RegExp(r'\[[^]]*\]'), '')
+          .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
+          .trim();
+    }
+
+    for (final song in source) {
+      final id = song.id.trim();
+      final title = normalizeTitle(song.title);
+
+      if (id.isEmpty || title.isEmpty) {
+        continue;
+      }
+
+      if (currentId != null && id == currentId) {
+        continue;
+      }
+
+      if (!seenIds.add(id)) {
+        continue;
+      }
+
+      if (!seenTitles.add(title)) {
+        continue;
+      }
+
+      result.add(song);
+
+      if (result.length >= 30) {
+        break;
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _suggestedSongs = result;
+    });
   }
 
   void _openSearch({
@@ -232,8 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                  if (controller
-                      .suggestedSongs.isNotEmpty)
+                  if (_suggestedSongs.isNotEmpty)
                     SliverPadding(
                       padding: EdgeInsets.fromLTRB(
                         22.w,
@@ -252,8 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                  if (controller
-                      .suggestedSongs.isNotEmpty)
+                  if (_suggestedSongs.isNotEmpty)
                     SliverPadding(
                       padding: EdgeInsets.fromLTRB(
                         22.w,
@@ -262,12 +344,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         0,
                       ),
                       sliver: SliverList.builder(
-                        itemCount: controller
-                            .suggestedSongs.length,
+                        itemCount: _suggestedSongs.length,
                         itemBuilder:
                             (context, index) {
-                          final song = controller
-                              .suggestedSongs[index];
+                          final song = _suggestedSongs[index];
 
                           return Padding(
                             padding:
@@ -277,6 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: _SongTile(
                               song: song,
                               index: index,
+                              queue: _suggestedSongs,
                             ),
                           );
                         },
@@ -363,8 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (!controller.isHomeLoading &&
                       controller
                           .trendingSongs.isEmpty &&
-                      controller
-                          .suggestedSongs.isEmpty &&
+                      _suggestedSongs.isEmpty &&
                       controller
                           .recentlyPlayed.isEmpty &&
                       controller.favorites.isEmpty &&
@@ -397,10 +477,20 @@ Future<void> _playAndOpenNowPlaying(
   final controller =
       MusicControllerProvider.instance;
 
-  await controller.playSong(
-    song,
-    sourceQueue: sourceQueue,
-  );
+  try {
+    await controller.playSong(
+      song,
+      sourceQueue: sourceQueue,
+    );
+  } catch (error) {
+    if (context.mounted) {
+      _showHomeMessage(
+        context,
+        'Could not play ${song.title}',
+      );
+    }
+    return;
+  }
 
   if (!context.mounted) {
     return;
@@ -559,7 +649,7 @@ Future<void> _showSongOptions(
                 },
               ),
               _OptionTile(
-                  icon: Hicons.musicFilterBold,
+                icon: Hicons.musicFilterBold,
                 title: 'Add to queue',
                 onTap: () {
                   Navigator.pop(sheetContext);
@@ -748,17 +838,30 @@ Future<void> _showHomeCreatePlaylistForSong(
 
   if (name == null || name.trim().isEmpty) return;
 
-  await controller.createPlaylist(name: name.trim());
+  final created = await controller.createPlaylist(
+    name: name.trim(),
+  );
 
-  final playlists = controller.playlists;
-  if (playlists.isEmpty) return;
+  if (created == null) {
+    if (context.mounted) {
+      _showHomeMessage(
+        context,
+        'Could not create playlist',
+      );
+    }
+    return;
+  }
 
-  final created = playlists.last;
-
-  await controller.addToPlaylist(created.id, song);
+  await controller.addToPlaylist(
+    created.id,
+    song,
+  );
 
   if (context.mounted) {
-    _showHomeMessage(context, 'Created ${created.name}');
+    _showHomeMessage(
+      context,
+      'Added to ${created.name}',
+    );
   }
 }
 
@@ -1109,23 +1212,27 @@ class _RecentlyPlayedCard extends StatelessWidget {
                     Positioned(
                       top: 14.w,
                       right: 14.w,
-                      child: GestureDetector(
-                        onTap: () => _showSongOptions(
-                          context,
-                          song,
-                          queue: songs,
-                        ),
-                        child: Container(
-                          width: 42.w,
-                          height: 42.w,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.48),
-                            shape: BoxShape.circle,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _showSongOptions(
+                            context,
+                            song,
+                            queue: songs,
                           ),
-                          child: Icon(
-                            Hicons.menuHamburger1LightOutline,
-                            color: Colors.white,
-                            size: 22.sp,
+                          borderRadius: BorderRadius.circular(21.r),
+                          child: Container(
+                            width: 42.w,
+                            height: 42.w,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.48),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Hicons.menuHamburger1LightOutline,
+                              color: Colors.white,
+                              size: 22.sp,
+                            ),
                           ),
                         ),
                       ),
@@ -1290,23 +1397,27 @@ class _TrendingCard
                     Positioned(
                       top: 10.w,
                       right: 10.w,
-                      child: GestureDetector(
-                        onTap: () => _showSongOptions(
-                          context,
-                          song,
-                          queue: MusicControllerProvider.instance.trendingSongs,
-                        ),
-                        child: Container(
-                          width: 40.w,
-                          height: 40.w,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.48),
-                            shape: BoxShape.circle,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _showSongOptions(
+                            context,
+                            song,
+                            queue: MusicControllerProvider.instance.trendingSongs,
                           ),
-                          child: Icon(
-                            Icons.more_horiz_rounded,
-                            color: Colors.white,
-                            size: 21.sp,
+                          borderRadius: BorderRadius.circular(20.r),
+                          child: Container(
+                            width: 40.w,
+                            height: 40.w,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.48),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.more_horiz_rounded,
+                              color: Colors.white,
+                              size: 21.sp,
+                            ),
                           ),
                         ),
                       ),
@@ -1477,173 +1588,156 @@ class _ArtistChip
     );
   }
 }
-class _SongTile
-    extends StatelessWidget {
+class _SongTile extends StatelessWidget {
   final Song song;
   final int index;
   final bool favorite;
+  final List<Song>? queue;
 
   const _SongTile({
     required this.song,
     required this.index,
     this.favorite = false,
+    this.queue,
   });
 
   String _durationText() {
-    final duration =
-        song.duration;
+    final duration = song.duration;
 
     if (duration == null) {
       return '';
     }
 
-    final minutes =
-        duration.inMinutes;
-    final seconds =
-        duration.inSeconds % 60;
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
 
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
+  Future<void> _play(BuildContext context) async {
+    await _playAndOpenNowPlaying(
+      context,
+      song: song,
+      sourceQueue: queue,
+    );
+  }
+
+  Future<void> _openOptions(BuildContext context) async {
+    await _showSongOptions(
+      context,
+      song,
+      queue: queue,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme =
-    Theme.of(context);
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
-    return GestureDetector(
-      behavior:
-      HitTestBehavior.opaque,
-      onTap: () async {
-        await _playAndOpenNowPlaying(
-          context,
-          song: song,
-        );
-      },
-      onLongPress: () => _showSongOptions(context, song),
+    return Material(
+      color: Colors.transparent,
       child: Container(
-        padding:
-        EdgeInsets.all(8.w),
-        decoration:
-        BoxDecoration(
-          color:
-          theme.colorScheme.surface,
-          borderRadius:
-          BorderRadius.circular(
-            22.r,
-          ),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(22.r),
         ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius:
-              BorderRadius.circular(
-                16.r,
-              ),
-              child: SizedBox(
-                width: 58.w,
-                height: 58.w,
-                child: _Artwork(
-                  url:
-                  song.thumbnailUrl,
-                  cropBlackBars: true,
-                ),
-              ),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment:
-                CrossAxisAlignment
-                    .start,
-                children: [
-                  Text(
-                    song.title,
-                    maxLines: 1,
-                    overflow:
-                    TextOverflow.ellipsis,
-                    style: theme.textTheme
-                        .titleMedium
-                        ?.copyWith(
-                      fontSize: 14.sp,
-                      fontWeight:
-                      FontWeight.w600,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(22.r),
+          onTap: () => _play(context),
+          child: Padding(
+            padding: EdgeInsets.all(8.w),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16.r),
+                  child: SizedBox(
+                    width: 58.w,
+                    height: 58.w,
+                    child: _Artwork(
+                      url: song.thumbnailUrl,
+                      cropBlackBars: true,
                     ),
                   ),
-                  SizedBox(height: 3.h),
-                  Row(
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Flexible(
-                        child: Text(
-                          song.artist,
-                          maxLines: 1,
-                          overflow:
-                          TextOverflow
-                              .ellipsis,
-                          style: theme
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                            fontSize: 11.sp,
-                            color: theme
-                                .colorScheme
-                                .onSurfaceVariant,
-                          ),
+                      Text(
+                        song.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      if (_durationText()
-                          .isNotEmpty) ...[
-                        SizedBox(
-                          width: 7.w,
-                        ),
-                        Text(
-                          '•',
-                          style:
-                          TextStyle(
-                            color: theme
-                                .colorScheme
-                                .onSurfaceVariant,
+                      SizedBox(height: 3.h),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              song.artist,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 11.sp,
+                                color: colors.onSurfaceVariant,
+                              ),
+                            ),
                           ),
-                        ),
-                        SizedBox(
-                          width: 7.w,
-                        ),
-                        Text(
-                          _durationText(),
-                          style: theme
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                            fontSize: 10.sp,
-                            color: theme
-                                .colorScheme
-                                .onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                          if (_durationText().isNotEmpty) ...[
+                            SizedBox(width: 7.w),
+                            Text(
+                              '•',
+                              style: TextStyle(
+                                color: colors.onSurfaceVariant,
+                              ),
+                            ),
+                            SizedBox(width: 7.w),
+                            Text(
+                              _durationText(),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 10.sp,
+                                color: colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                SizedBox(width: 4.w),
+                if (favorite)
+                  Padding(
+                    padding: EdgeInsets.only(right: 2.w),
+                    child: Icon(
+                      Hicons.heart1LightOutline,
+                      size: 18.sp,
+                      color: colors.onSurface,
+                    ),
+                  ),
+                SizedBox(
+                  width: 46.w,
+                  height: 46.w,
+                  child: IconButton(
+                    tooltip: 'More options',
+                    onPressed: () => _openOptions(context),
+                    padding: EdgeInsets.zero,
+                    splashRadius: 22.r,
+                    icon: Icon(
+                      Icons.more_horiz_rounded,
+                      size: 22.sp,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            SizedBox(width: 6.w),
-            Icon(
-              favorite
-                  ? Hicons
-                  .heart1LightOutline
-                  : Icons
-                  .more_horiz_rounded,
-              size: favorite
-                  ? 18.sp
-                  : 21.sp,
-              color: favorite
-                  ? theme
-                  .colorScheme
-                  .onSurface
-                  : theme
-                  .colorScheme
-                  .onSurfaceVariant,
-            ),
-          ],
+          ),
         ),
       ),
     )
@@ -1657,11 +1751,11 @@ class _SongTile
       end: 0,
       delay: (20 * index).ms,
       duration: 330.ms,
-      curve:
-      Curves.easeOutCubic,
+      curve: Curves.easeOutCubic,
     );
   }
 }
+
 class _PlaylistList
     extends StatelessWidget {
   final List<Playlist> playlists;
@@ -2024,8 +2118,8 @@ class _ErrorPill
           SizedBox(width: 8.w),
           Expanded(
             child: Text(
-              'Music could not be refreshed.',
-              maxLines: 1,
+              message,
+              maxLines: 2,
               overflow:
               TextOverflow.ellipsis,
               style: theme.textTheme
@@ -2718,4 +2812,3 @@ class _SearchResultTile
     );
   }
 }
-

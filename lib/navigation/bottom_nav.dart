@@ -304,10 +304,18 @@ class _GlobalMiniPlayerState
   void _syncPulse(bool isPlaying) {
     if (isPlaying) {
       if (!_pulseController.isAnimating) {
-        _pulseController.repeat(reverse: true);
+        _pulseController.repeat(
+          reverse: true,
+        );
       }
-    } else {
+      return;
+    }
+
+    if (_pulseController.isAnimating) {
       _pulseController.stop();
+    }
+
+    if (_pulseController.value != 0) {
       _pulseController.animateTo(
         0,
         duration: const Duration(
@@ -323,326 +331,375 @@ class _GlobalMiniPlayerState
     final controller =
         MusicControllerProvider.instance;
 
-    final song = controller.currentSong;
+    // IMPORTANT:
+    // The mini player listens directly to the controller.
+    // This makes play/pause state update immediately.
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        final song =
+            controller.currentSong;
 
-    if (song == null) {
-      _syncPulse(false);
-      return const SizedBox.shrink();
-    }
+        if (song == null) {
+          _syncPulse(false);
 
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final playback = controller.playbackState;
-    final isPlaying = playback.isPlaying;
+          return const SizedBox.shrink();
+        }
 
-    _syncPulse(isPlaying);
+        final theme =
+        Theme.of(context);
 
-    final durationMs =
-        playback.duration.inMilliseconds;
+        final colors =
+            theme.colorScheme;
 
-    final positionMs =
-        playback.position.inMilliseconds;
+        final playback =
+            controller.playbackState;
 
-    final progress = durationMs <= 0
-        ? 0.0
-        : (positionMs / durationMs)
-        .clamp(0.0, 1.0);
+        // Single source of truth.
+        final isPlaying =
+            playback.isPlaying;
 
-    // Never show the loading spinner while audio is already playing.
-    // The audio player's `playing` state is the source of truth for the
-    // mini-player button. Loading/buffering can briefly overlap with a
-    // playing state during stream transitions.
-    final isLoading =
-        !isPlaying &&
-            (playback.status.name == 'loading' ||
-                playback.status.name == 'buffering');
+        _syncPulse(isPlaying);
 
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: 14.w,
-      ),
-      child: AnimatedBuilder(
-        animation: _pulseController,
-        builder: (context, child) {
-          final pulse =
-              _pulseController.value;
+        final durationMs =
+            playback.duration.inMilliseconds;
 
-          return Transform.scale(
-            scale: isPlaying
-                ? 1.0 + (pulse * 0.006)
-                : 1.0,
-            child: child,
-          );
-        },
-        child: ClipRRect(
-          borderRadius:
-          BorderRadius.circular(26.r),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: 22,
-              sigmaY: 22,
+        final positionMs =
+            playback.position.inMilliseconds;
+
+        final progress =
+        durationMs <= 0
+            ? 0.0
+            : (positionMs /
+            durationMs)
+            .clamp(
+          0.0,
+          1.0,
+        );
+
+        // Never show loading while the actual
+        // audio player says it is playing.
+        final isLoading =
+            !isPlaying &&
+                (playback.status.name ==
+                    'loading' ||
+                    playback.status.name ==
+                        'buffering');
+
+        return Padding(
+          padding:
+          EdgeInsets.symmetric(
+            horizontal: 14.w,
+          ),
+          child: AnimatedBuilder(
+            animation: _pulseController,
+            builder: (
+                context,
+                child,
+                ) {
+              final pulse =
+                  _pulseController.value;
+
+              return Transform.scale(
+                scale: isPlaying
+                    ? 1.0 +
+                    (pulse * 0.006)
+                    : 1.0,
+                child: child,
+              );
+            },
+            child: _MiniPlayerSurface(
+              song: song,
+              controller: controller,
+              isPlaying: isPlaying,
+              isLoading: isLoading,
+              progress: progress,
+              colors: colors,
             ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MiniPlayerSurface
+    extends StatelessWidget {
+  final Song song;
+  final MusicController controller;
+  final bool isPlaying;
+  final bool isLoading;
+  final double progress;
+  final ColorScheme colors;
+
+  const _MiniPlayerSurface({
+    required this.song,
+    required this.controller,
+    required this.isPlaying,
+    required this.isLoading,
+    required this.progress,
+    required this.colors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme =
+    Theme.of(context);
+
+    return ClipRRect(
+      borderRadius:
+      BorderRadius.circular(
+        26.r,
+      ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: 22,
+          sigmaY: 22,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius:
+            BorderRadius.circular(
+              26.r,
+            ),
+            onTap: () {
+              Navigator.of(
+                context,
+              ).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                  const NowPlayingScreen(),
+                ),
+              );
+            },
+            child: Container(
+              height: 82.h,
+              padding:
+              EdgeInsets.fromLTRB(
+                8.w,
+                8.w,
+                10.w,
+                8.w,
+              ),
+              decoration:
+              BoxDecoration(
+                color: colors.surface
+                    .withValues(
+                  alpha:
+                  theme.brightness ==
+                      Brightness.dark
+                      ? 0.42
+                      : 0.50,
+                ),
                 borderRadius:
-                BorderRadius.circular(26.r),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                      const NowPlayingScreen(),
-                    ),
-                  );
-                },
-                child: Container(
-                  height: 82.h,
-                  padding: EdgeInsets.fromLTRB(
-                    8.w,
-                    8.w,
-                    10.w,
-                    8.w,
+                BorderRadius.circular(
+                  26.r,
+                ),
+                border:
+                Border.all(
+                  color: colors.onSurface
+                      .withValues(
+                    alpha: 0.10,
                   ),
-                  decoration: BoxDecoration(
+                  width: 0.8,
+                ),
+                boxShadow: [
+                  BoxShadow(
                     color:
-                    colors.surface.withValues(
-                      alpha:
-                      theme.brightness ==
-                          Brightness.dark
-                          ? 0.42
-                          : 0.50,
+                    colors.onSurface
+                        .withValues(
+                      alpha: 0.06,
                     ),
-                    borderRadius:
-                    BorderRadius.circular(26.r),
-                    border: Border.all(
-                      color:
-                      colors.onSurface.withValues(
-                        alpha: 0.10,
-                      ),
-                      width: 0.8,
+                    blurRadius: 24,
+                    spreadRadius: -8,
+                    offset:
+                    const Offset(
+                      0,
+                      10,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                        colors.onSurface.withValues(
-                          alpha: 0.06,
-                        ),
-                        blurRadius: 24,
-                        spreadRadius: -8,
-                        offset:
-                        const Offset(0, 10),
-                      ),
-                    ],
                   ),
-                  child: Stack(
+                ],
+              ),
+              child: Stack(
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          AnimatedScale(
-                            scale: isPlaying
-                                ? 1.0
-                                : 0.97,
-                            duration:
-                            const Duration(
-                              milliseconds: 280,
-                            ),
-                            curve:
-                            Curves.easeOutCubic,
-                            child: _MiniArtwork(
-                              song: song,
-                              isPlaying:
-                              isPlaying,
-                            ),
-                          ),
+                      AnimatedScale(
+                        scale: isPlaying
+                            ? 1.0
+                            : 0.97,
+                        duration:
+                        const Duration(
+                          milliseconds: 280,
+                        ),
+                        curve:
+                        Curves.easeOutCubic,
+                        child:
+                        _MiniArtwork(
+                          song: song,
+                          isPlaying:
+                          isPlaying,
+                        ),
+                      ),
 
-                          SizedBox(
-                            width: 11.w,
-                          ),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment:
-                              MainAxisAlignment.center,
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                AnimatedSwitcher(
-                                  duration:
-                                  const Duration(
-                                    milliseconds: 260,
-                                  ),
-                                  switchInCurve:
-                                  Curves.easeOut,
-                                  switchOutCurve:
-                                  Curves.easeIn,
-                                  transitionBuilder:
-                                      (
-                                      child,
-                                      animation,
-                                      ) {
-                                    return FadeTransition(
-                                      opacity:
-                                      animation,
-                                      child:
-                                      SlideTransition(
-                                        position:
-                                        Tween<Offset>(
-                                          begin:
-                                          const Offset(
-                                            0,
-                                            0.15,
-                                          ),
-                                          end:
-                                          Offset.zero,
-                                        ).animate(
-                                          animation,
-                                        ),
-                                        child:
-                                        child,
+                      SizedBox(
+                        width: 11.w,
+                      ),
+
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment:
+                          MainAxisAlignment
+                              .center,
+                          crossAxisAlignment:
+                          CrossAxisAlignment
+                              .start,
+                          children: [
+                            AnimatedSwitcher(
+                              duration:
+                              const Duration(
+                                milliseconds: 260,
+                              ),
+                              switchInCurve:
+                              Curves.easeOut,
+                              switchOutCurve:
+                              Curves.easeIn,
+                              transitionBuilder:
+                                  (
+                                  child,
+                                  animation,
+                                  ) {
+                                return FadeTransition(
+                                  opacity:
+                                  animation,
+                                  child:
+                                  SlideTransition(
+                                    position:
+                                    Tween<
+                                        Offset>(
+                                      begin:
+                                      const Offset(
+                                        0,
+                                        0.15,
                                       ),
-                                    );
-                                  },
-                                  child: Text(
-                                    song.title,
-                                    key: ValueKey(
-                                      song.id,
-                                    ),
-                                    maxLines: 1,
-                                    overflow:
-                                    TextOverflow
-                                        .ellipsis,
-                                    style:
-                                    TextStyle(
-                                      fontSize: 13.sp,
-                                      fontWeight:
-                                      FontWeight.w700,
-                                      color:
-                                      colors.onSurface,
-                                    ),
-                                  ),
-                                ),
-
-                                SizedBox(
-                                  height: 3.h,
-                                ),
-
-                                Text(
-                                  song.artist,
-                                  maxLines: 1,
-                                  overflow:
-                                  TextOverflow
-                                      .ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 10.5.sp,
-                                    fontWeight:
-                                    FontWeight.w500,
-                                    color: colors
-                                        .onSurfaceVariant,
-                                  ),
-                                ),
-
-                                SizedBox(
-                                  height: 5.h,
-                                ),
-                                SizedBox(
-                                  height: 3.h,
-                                  child: ClipRRect(
-                                    borderRadius:
-                                    BorderRadius
-                                        .circular(
-                                      10.r,
+                                      end:
+                                      Offset.zero,
+                                    ).animate(
+                                      animation,
                                     ),
                                     child:
-                                    Stack(
-                                      children: [
-                                        Positioned.fill(
-                                          child:
-                                          Container(
-                                            color: colors
-                                                .onSurface
-                                                .withValues(
-                                              alpha: 0.10,
-                                            ),
-                                          ),
-                                        ),
-                                        AnimatedFractionallySizedBox(
-                                          duration:
-                                          const Duration(
-                                            milliseconds: 220,
-                                          ),
-                                          curve:
-                                          Curves.linear,
-                                          alignment:
-                                          Alignment
-                                              .centerLeft,
-                                          widthFactor:
-                                          progress,
-                                          child:
-                                          Container(
-                                            decoration:
-                                            BoxDecoration(
-                                              color: colors
-                                                  .primary,
-                                              borderRadius:
-                                              BorderRadius
-                                                  .circular(
-                                                10.r,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                    child,
                                   ),
+                                );
+                              },
+                              child: Text(
+                                song.title,
+                                key:
+                                ValueKey(
+                                  song.id,
                                 ),
-                              ],
+                                maxLines: 1,
+                                overflow:
+                                TextOverflow
+                                    .ellipsis,
+                                style:
+                                TextStyle(
+                                  fontSize:
+                                  13.sp,
+                                  fontWeight:
+                                  FontWeight
+                                      .w700,
+                                  color:
+                                  colors
+                                      .onSurface,
+                                ),
+                              ),
                             ),
-                          ),
 
-                          SizedBox(
-                            width: 8.w,
-                          ),
-                          _MiniPlayButton(
-                            controller:
-                            controller,
-                            isPlaying:
-                            isPlaying,
-                            isLoading:
-                            isLoading,
-                          ),
-                        ],
-                      ),
-                      IgnorePointer(
-                        child: Align(
-                          alignment:
-                          Alignment.topCenter,
-                          child: Container(
-                            height: 1.h,
-                            margin:
-                            EdgeInsets.symmetric(
-                              horizontal: 24.w,
+                            SizedBox(
+                              height: 3.h,
                             ),
-                            decoration:
-                            BoxDecoration(
-                              borderRadius:
-                              BorderRadius
-                                  .circular(
-                                10.r,
-                              ),
-                              color: Colors.white
-                                  .withValues(
-                                alpha:
-                                theme.brightness ==
-                                    Brightness.dark
-                                    ? 0.12
-                                    : 0.22,
+
+                            Text(
+                              song.artist,
+                              maxLines: 1,
+                              overflow:
+                              TextOverflow
+                                  .ellipsis,
+                              style:
+                              TextStyle(
+                                fontSize:
+                                10.5.sp,
+                                fontWeight:
+                                FontWeight
+                                    .w500,
+                                color:
+                                colors
+                                    .onSurfaceVariant,
                               ),
                             ),
-                          ),
+
+                            SizedBox(
+                              height: 5.h,
+                            ),
+
+                            _MiniProgressBar(
+                              progress:
+                              progress,
+                              colors:
+                              colors,
+                            ),
+                          ],
                         ),
+                      ),
+
+                      SizedBox(
+                        width: 8.w,
+                      ),
+
+                      _MiniPlayButton(
+                        controller:
+                        controller,
+                        isPlaying:
+                        isPlaying,
+                        isLoading:
+                        isLoading,
                       ),
                     ],
                   ),
-                ),
+
+                  IgnorePointer(
+                    child: Align(
+                      alignment:
+                      Alignment.topCenter,
+                      child: Container(
+                        height: 1.h,
+                        margin:
+                        EdgeInsets.symmetric(
+                          horizontal: 24.w,
+                        ),
+                        decoration:
+                        BoxDecoration(
+                          borderRadius:
+                          BorderRadius
+                              .circular(
+                            10.r,
+                          ),
+                          color:
+                          Colors.white
+                              .withValues(
+                            alpha:
+                            theme.brightness ==
+                                Brightness.dark
+                                ? 0.12
+                                : 0.22,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -651,7 +708,69 @@ class _GlobalMiniPlayerState
     );
   }
 }
-class _MiniArtwork extends StatelessWidget {
+
+class _MiniProgressBar
+    extends StatelessWidget {
+  final double progress;
+  final ColorScheme colors;
+
+  const _MiniProgressBar({
+    required this.progress,
+    required this.colors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 3.h,
+      child: ClipRRect(
+        borderRadius:
+        BorderRadius.circular(
+          10.r,
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Container(
+                color:
+                colors.onSurface
+                    .withValues(
+                  alpha: 0.10,
+                ),
+              ),
+            ),
+            AnimatedFractionallySizedBox(
+              duration:
+              const Duration(
+                milliseconds: 220,
+              ),
+              curve:
+              Curves.linear,
+              alignment:
+              Alignment.centerLeft,
+              widthFactor:
+              progress,
+              child: Container(
+                decoration:
+                BoxDecoration(
+                  color:
+                  colors.primary,
+                  borderRadius:
+                  BorderRadius.circular(
+                    10.r,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniArtwork
+    extends StatelessWidget {
   final Song song;
   final bool isPlaying;
 
@@ -662,28 +781,40 @@ class _MiniArtwork extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+    final theme =
+    Theme.of(context);
 
-    final artwork = song.thumbnailUrl;
+    final colors =
+        theme.colorScheme;
+
+    final artwork =
+        song.thumbnailUrl;
 
     return AnimatedContainer(
       duration:
-      const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic,
+      const Duration(
+        milliseconds: 320,
+      ),
+      curve:
+      Curves.easeOutCubic,
       width: 64.w,
       height: 64.w,
       padding: EdgeInsets.all(
         isPlaying ? 1.5.w : 0,
       ),
-      decoration: BoxDecoration(
+      decoration:
+      BoxDecoration(
         borderRadius:
-        BorderRadius.circular(20.r),
-        boxShadow: isPlaying
+        BorderRadius.circular(
+          20.r,
+        ),
+        boxShadow:
+        isPlaying
             ? [
           BoxShadow(
             color:
-            colors.primary.withValues(
+            colors.primary
+                .withValues(
               alpha: 0.16,
             ),
             blurRadius: 16,
@@ -694,17 +825,25 @@ class _MiniArtwork extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius:
-        BorderRadius.circular(18.r),
+        BorderRadius.circular(
+          18.r,
+        ),
         child: artwork != null &&
             artwork.isNotEmpty
             ? Image.network(
           artwork,
           fit: BoxFit.cover,
           errorBuilder:
-              (_, __, ___) =>
-              _ArtworkFallback(
-                colors: colors,
-              ),
+              (
+              _,
+              __,
+              ___,
+              ) {
+            return _ArtworkFallback(
+              colors:
+              colors,
+            );
+          },
         )
             : _ArtworkFallback(
           colors: colors,
@@ -713,7 +852,9 @@ class _MiniArtwork extends StatelessWidget {
     );
   }
 }
-class _ArtworkFallback extends StatelessWidget {
+
+class _ArtworkFallback
+    extends StatelessWidget {
   final ColorScheme colors;
 
   const _ArtworkFallback({
@@ -734,7 +875,9 @@ class _ArtworkFallback extends StatelessWidget {
     );
   }
 }
-class _MiniPlayButton extends StatelessWidget {
+
+class _MiniPlayButton
+    extends StatelessWidget {
   final MusicController controller;
   final bool isPlaying;
   final bool isLoading;
@@ -748,22 +891,36 @@ class _MiniPlayButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors =
-        Theme.of(context).colorScheme;
+        Theme.of(context)
+            .colorScheme;
 
     return AnimatedContainer(
       duration:
-      const Duration(milliseconds: 240),
-      curve: Curves.easeOutCubic,
+      const Duration(
+        milliseconds: 240,
+      ),
+      curve:
+      Curves.easeOutCubic,
       width: 50.w,
       height: 50.w,
-      decoration: BoxDecoration(
-        color: colors.primary.withValues(
-          alpha: isPlaying ? 0.12 : 0.08,
+      decoration:
+      BoxDecoration(
+        color:
+        colors.primary.withValues(
+          alpha:
+          isPlaying
+              ? 0.12
+              : 0.08,
         ),
         borderRadius:
-        BorderRadius.circular(19.r),
-        border: Border.all(
-          color: colors.primary.withValues(
+        BorderRadius.circular(
+          19.r,
+        ),
+        border:
+        Border.all(
+          color:
+          colors.primary
+              .withValues(
             alpha: 0.10,
           ),
           width: 0.7,
@@ -773,7 +930,9 @@ class _MiniPlayButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius:
-          BorderRadius.circular(19.r),
+          BorderRadius.circular(
+            19.r,
+          ),
           onTap: isLoading
               ? null
               : () async {
@@ -781,22 +940,32 @@ class _MiniPlayButton extends StatelessWidget {
                 .togglePlayPause();
           },
           child: Center(
-            child: AnimatedSwitcher(
+            child:
+            AnimatedSwitcher(
               duration:
-              const Duration(milliseconds: 220),
+              const Duration(
+                milliseconds: 220,
+              ),
               transitionBuilder:
-                  (child, animation) {
+                  (
+                  child,
+                  animation,
+                  ) {
                 return ScaleTransition(
                   scale: animation,
-                  child: FadeTransition(
-                    opacity: animation,
-                    child: child,
+                  child:
+                  FadeTransition(
+                    opacity:
+                    animation,
+                    child:
+                    child,
                   ),
                 );
               },
               child: isLoading
                   ? SizedBox(
-                key: const ValueKey(
+                key:
+                const ValueKey(
                   'loading',
                 ),
                 width: 19.w,
@@ -805,14 +974,18 @@ class _MiniPlayButton extends StatelessWidget {
                 CircularProgressIndicator(
                   strokeWidth: 2,
                   color:
-                  colors.primary,
+                  colors
+                      .primary,
                 ),
               )
                   : Icon(
                 isPlaying
-                    ? Icons.pause_rounded
-                    : Icons.play_arrow_rounded,
-                key: ValueKey(
+                    ? Hicons
+                    .pauseLightOutline
+                    : Hicons
+                    .playLightOutline,
+                key:
+                ValueKey(
                   isPlaying,
                 ),
                 size: 27.sp,

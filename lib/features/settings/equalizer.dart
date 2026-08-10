@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_hicons/flutter_hicons.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
@@ -644,7 +645,7 @@ class _EqualizerScreenState extends State<EqualizerScreen> {
               borderRadius: BorderRadius.circular(17),
             ),
             child: Icon(
-              Icons.equalizer_rounded,
+              Hicons.filter4LightOutline,
               size: 28,
               color: colors.onPrimaryContainer,
             ),

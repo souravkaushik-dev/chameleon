@@ -21,7 +21,7 @@ class SettingsScreen extends StatefulWidget {
     required this.settings,
     required this.audioPlayerService,
     this.onOpenGithub,
-    this.version = '1.0.1+2',
+    this.version = '1.0.2+3',
   });
 
   @override
@@ -91,19 +91,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: ThemeMode.system,
               title: 'System',
               subtitle: 'Follow your device appearance',
-              icon: Icons.brightness_auto_rounded,
+              icon: Hicons.colorPickerLightOutline,
             ),
             _ChoiceItem(
               value: ThemeMode.light,
               title: 'Light',
               subtitle: 'Always use light mode',
-              icon: Icons.light_mode_rounded,
+              icon: Hicons.sun2LightOutline,
             ),
             _ChoiceItem(
               value: ThemeMode.dark,
               title: 'Dark',
               subtitle: 'Always use dark mode',
-              icon: Icons.dark_mode_rounded,
+              icon: Hicons.moonLightOutline,
             ),
           ],
         );
@@ -137,19 +137,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: 25,
               title: '25 songs',
               subtitle: 'Keep a smaller history',
-              icon: Icons.history_rounded,
+              icon: Hicons.rotateLeftLightOutline,
             ),
             _ChoiceItem(
               value: 50,
               title: '50 songs',
               subtitle: 'Recommended',
-              icon: Icons.history_rounded,
+              icon: Hicons.rotateLeftLightOutline,
             ),
             _ChoiceItem(
               value: 100,
               title: '100 songs',
               subtitle: 'Keep more listening history',
-              icon: Icons.history_rounded,
+              icon: Hicons.rotateLeftLightOutline,
             ),
           ],
         );
@@ -382,11 +382,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'Appearance',
-              icon: Icons.palette_rounded,
+              icon: Hicons.paletteLightOutline,
               children: [
                 _SettingsTile(
                   icon:
-                  Icons.brightness_6_rounded,
+                  Hicons.colorPickerLightOutline,
                   title: 'Theme',
                   subtitle:
                   _themeName(
@@ -407,11 +407,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: _SettingsSection(
               title: 'Player',
               icon:
-              Icons.music_note_rounded,
+              Hicons.musicnoteLightOutline,
               children: [
                 _AnimatedSwitchTile(
                   icon:
-                  Icons.keyboard_arrow_up_rounded,
+                  Hicons.up2LightOutline,
                   title: 'Mini player',
                   subtitle:
                   'Show the current song above the navigation bar',
@@ -422,7 +422,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
 
                 _SettingsTile(
-                  icon: Icons.equalizer_rounded,
+                  icon: Hicons.filter4LightOutline,
                   title: 'Equalizer',
                   subtitle: 'Adjust bass, vocals and other frequencies',
                   onTap: _openEqualizer,
@@ -438,11 +438,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'Search',
-              icon: Icons.search_rounded,
+              icon: Hicons.search1LightOutline,
               children: [
                 _AnimatedSwitchTile(
                   icon:
-                  Icons.history_rounded,
+                  Hicons.rotateLeftLightOutline,
                   title: 'Search history',
                   subtitle:
                   'Save recent searches for quick access',
@@ -463,11 +463,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: _SettingsSection(
               title: 'Library',
               icon:
-              Icons.library_music_rounded,
+              Hicons.folder2LightOutline,
               children: [
                 _SettingsTile(
                   icon:
-                  Icons.history_rounded,
+                  Hicons.rotateLeftLightOutline,
                   title: 'Recently played',
                   subtitle:
                   '${settings.recentLimit} songs',
@@ -485,11 +485,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'About',
-              icon: Icons.info_rounded,
+              icon: Hicons.informationSquareLightOutline,
               children: [
                 _SettingsTile(
                   icon:
-                  Icons.info_outline_rounded,
+                  Hicons.dangerTriangleLightOutline,
                   title: 'About Chameleon',
                   subtitle:
                   'Version ${widget.version}',
@@ -499,7 +499,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 _SettingsTile(
                   icon:
-                  Icons.code_rounded,
+                  Hicons.linkLightOutline,
                   title: 'GitHub',
                   subtitle:
                   'View the Chameleon project',
@@ -513,7 +513,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 _SettingsTile(
                   icon:
-                  Icons.description_rounded,
+                  Hicons.documentAlignCenter2LightOutline,
                   title:
                   'Open-source licenses',
                   subtitle:
@@ -578,8 +578,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       BoxShape.circle,
                     ),
                     child: Icon(
-                      Icons
-                          .music_note_rounded,
+                      Hicons
+                          .musicnoteLightOutline,
                       size: 23.sp,
                       color: color,
                     ),
@@ -679,8 +679,8 @@ class _SettingsHero
               BoxShape.circle,
             ),
             child: const Icon(
-              Icons
-                  .music_note_rounded,
+              Hicons
+                  .musicnoteLightOutline,
               color: Colors.white,
               size: 28,
             ),
@@ -998,8 +998,8 @@ class _SettingsTile
               if (onTap != null &&
                   showChevron)
                 Icon(
-                  Icons
-                      .chevron_right_rounded,
+                  Hicons
+                      .right2LightOutline,
                   size: 20.sp,
                   color: theme
                       .colorScheme
@@ -1562,8 +1562,8 @@ class _ChoiceRow<T>
                 ),
                 child: selected
                     ? Icon(
-                  Icons
-                      .check_circle_rounded,
+                  Hicons
+                      .tickLightOutline,
                   key:
                   const ValueKey(
                     'selected',
@@ -1783,7 +1783,7 @@ class _AboutSheet extends StatelessWidget {
                     onGithub!();
                   },
                   icon: const Icon(
-                    Icons.code_rounded,
+                    Hicons.linkLightOutline,
                   ),
                   label: const Text(
                     'View on GitHub',
@@ -1980,8 +1980,8 @@ class _ResetTile
                   BoxShape.circle,
                 ),
                 child: Icon(
-                  Icons
-                      .restart_alt_rounded,
+                  Hicons
+                      .refresh1LightOutline,
                   color: color,
                 ),
               ),
@@ -2023,8 +2023,8 @@ class _ResetTile
               ),
 
               Icon(
-                Icons
-                    .chevron_right_rounded,
+                Hicons
+                    .right2LightOutline,
                 color: theme
                     .colorScheme
                     .onSurfaceVariant
