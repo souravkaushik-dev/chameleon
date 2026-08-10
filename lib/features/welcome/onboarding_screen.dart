@@ -4,15 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../data/services/audio_player_service.dart';
 import '../../navigation/bottom_nav.dart';
 import '../../../data/services/settings_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final SettingsService settings;
+  final AudioPlayerService audioPlayerService;
 
   const OnboardingScreen({
     super.key,
     required this.settings,
+    required this.audioPlayerService,
   });
 
   @override
@@ -180,6 +183,7 @@ class _OnboardingScreenState
               ) {
             return BottomNav(
               settings: widget.settings,
+              audioPlayerService: widget.audioPlayerService,
             );
           },
           transitionsBuilder: (

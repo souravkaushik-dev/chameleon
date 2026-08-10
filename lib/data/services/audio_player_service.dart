@@ -7,31 +7,62 @@ import 'package:just_audio/just_audio.dart';
 import '../models/song.dart';
 
 class AudioPlayerService {
-  final AudioPlayer _player = AudioPlayer(
-    userAgent:
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) '
-        'AppleWebKit/605.1.15 '
-        '(KHTML, like Gecko) '
-        'Version/17.0 Mobile/15E148 Safari/604.1',
-    useLazyPreparation: true,
-    useProxyForRequestHeaders: false,
-  );
+  // REAL ANDROID EQUALIZER
+  //
+  // This is a native Android audio effect.
+  //
+  // On Android:
+  //   AndroidEqualizer -> AudioPipeline -> AudioPlayer
+  //
+  // On iOS/macOS/web:
+  //   just_audio does not provide this Android equalizer.
+  //
+  // The same service can still be used on those platforms; the equalizer
+  // simply won't modify the audio there.
+  final AndroidEqualizer _equalizer =
+  AndroidEqualizer();
 
+  late final AudioPlayer _player;
+  // STATE
+  String? _loadedSongId;
+  String? _loadedStreamUrl;
+
+  int _requestId = 0;
+
+  bool _isPreparing = false;
+  int _preparingRequestId = 0;
+
+  Object? _lastError;
+  // EQUALIZER STATE
+  bool _equalizerEnabled = false;
+
+  List<double> _equalizerGains = [];
+  // CONSTRUCTOR
   AudioPlayerService() {
+    _player = AudioPlayer(
+      userAgent:
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) '
+          'AppleWebKit/605.1.15 '
+          '(KHTML, like Gecko) '
+          'Version/17.0 Mobile/15E148 Safari/604.1',
+      useLazyPreparation: true,
+      useProxyForRequestHeaders: false,
+      audioPipeline: AudioPipeline(
+        androidAudioEffects: [
+          _equalizer,
+        ],
+      ),
+    );
+
     _listenToPlayerErrors();
     _listenToPlaybackEvents();
     _listenToDuration();
   }
-
+  // PLAYER
   AudioPlayer get player => _player;
-  String? _loadedSongId;
-  String? _loadedStreamUrl;
-  int _requestId = 0;
-  bool _isPreparing = false;
-  int _preparingRequestId = 0;
-  Object? _lastError;
-
+  // BASIC STATE
   Object? get lastError => _lastError;
+
   Stream<bool> get playingStream {
     return _player.playingStream;
   }
@@ -55,6 +86,7 @@ class AudioPlayerService {
   Stream<int?> get currentIndexStream {
     return _player.currentIndexStream;
   }
+
   bool get isPlaying {
     return _player.playing;
   }
@@ -83,82 +115,227 @@ class AudioPlayerService {
   ProcessingState get processingState {
     return _player.processingState;
   }
+  // EQUALIZER GETTERS
+  AndroidEqualizer get equalizer {
+    return _equalizer;
+  }
+
+  bool get equalizerEnabled {
+    return _equalizerEnabled;
+  }
+
+  List<double> get equalizerGains {
+    return List.unmodifiable(
+      _equalizerGains,
+    );
+  }
+  // INITIALIZE EQUALIZER
+  Future<void> initializeEqualizer() async {
+    try {
+      final parameters = await _equalizer.parameters;
+
+      _equalizerGains = List<double>.filled(
+        parameters.bands.length,
+        0.0,
+      );
+
+      _equalizerEnabled = false;
+
+      await _equalizer.setEnabled(false);
+    } catch (_) {
+      _equalizerGains = [];
+      _equalizerEnabled = false;
+    }
+  }
+  // EQUALIZER PARAMETERS
+  Future<AndroidEqualizerParameters?>
+  getEqualizerParameters() async {
+    try {
+      return await _equalizer.parameters;
+    } catch (_) {
+      return null;
+    }
+  }
+  // EQUALIZER ENABLE / DISABLE
+  Future<void> setEqualizerEnabled(
+      bool enabled,
+      ) async {
+    try {
+      await _equalizer.setEnabled(
+        enabled,
+      );
+
+      _equalizerEnabled = enabled;
+    } catch (_) {
+      _equalizerEnabled = false;
+    }
+  }
+  // SET SINGLE BAND GAIN
+  Future<void> setEqualizerBandGain(
+      int index,
+      double gain,
+      ) async {
+    try {
+      final parameters =
+      await _equalizer.parameters;
+
+      if (index < 0 ||
+          index >= parameters.bands.length) {
+        return;
+      }
+
+      final band =
+      parameters.bands[index];
+
+      final clampedGain =
+      gain.clamp(
+        parameters.minDecibels,
+        parameters.maxDecibels,
+      );
+
+      await band.setGain(
+        clampedGain,
+      );
+
+      if (index >=
+          _equalizerGains.length) {
+        _equalizerGains =
+        List<double>.filled(
+          parameters.bands.length,
+          0.0,
+        );
+      }
+
+      _equalizerGains[index] =
+          clampedGain;
+    } catch (_) {
+      // Unsupported platform or unavailable
+      // native equalizer.
+    }
+  }
+  // SET ALL BAND GAINS
+  Future<void> setEqualizerGains(
+      List<double> gains,
+      ) async {
+    try {
+      final parameters =
+      await _equalizer.parameters;
+
+      final count = gains.length <
+          parameters.bands.length
+          ? gains.length
+          : parameters.bands.length;
+
+      for (int i = 0; i < count; i++) {
+        final gain = gains[i].clamp(
+          parameters.minDecibels,
+          parameters.maxDecibels,
+        );
+
+        await parameters.bands[i]
+            .setGain(gain);
+      }
+
+      _equalizerGains =
+      List<double>.generate(
+        parameters.bands.length,
+            (index) {
+          if (index < gains.length) {
+            return gains[index].clamp(
+              parameters.minDecibels,
+              parameters.maxDecibels,
+            );
+          }
+
+          return 0.0;
+        },
+      );
+    } catch (_) {
+      // Unsupported platform.
+    }
+  }
+  // RESET EQUALIZER
+  Future<void> resetEqualizer() async {
+    try {
+      final parameters =
+      await _equalizer.parameters;
+
+      for (final band
+      in parameters.bands) {
+        await band.setGain(0.0);
+      }
+
+      _equalizerGains =
+      List<double>.filled(
+        parameters.bands.length,
+        0.0,
+      );
+    } catch (_) {
+      // Unsupported platform.
+    }
+  }
+  // PRESET
+  Future<void> applyEqualizerPreset(
+      List<double> gains,
+      ) async {
+    await setEqualizerGains(
+      gains,
+    );
+  }
+  // PLAYER ERROR
   void _listenToPlayerErrors() {
     _player.errorStream.listen(
           (Object error) {
         _lastError = error;
-
-        debugPrint(
-          '🔴 CHAMELEON AUDIO ERROR: $error',
-        );
       },
     );
   }
-
+  // DURATION
   void _listenToDuration() {
     _player.durationStream.listen(
-          (duration) {
-        debugPrint(
-          '🎵 REAL AUDIO DURATION: $duration',
-        );
-
-        debugPrint(
-          '🎵 REAL AUDIO POSITION: ${_player.position}',
-        );
-      },
+          (_) {},
     );
   }
+  // PLAYBACK EVENTS
   void _listenToPlaybackEvents() {
     _player.playbackEventStream.listen(
-          (PlaybackEvent event) {
-        debugPrint(
-          '🎵 CHAMELEON AUDIO: '
-              'state=${_player.processingState} '
-              'playing=${_player.playing} '
-              'position=${event.updatePosition} '
-              'buffered=${event.bufferedPosition}',
-        );
-      },
+          (_) {},
       onError: (
           Object error,
           StackTrace stackTrace,
           ) {
         _lastError = error;
-
-        debugPrint(
-          '🔴 CHAMELEON PLAYBACK STREAM ERROR: $error',
-        );
-
-        debugPrintStack(
-          stackTrace: stackTrace,
-        );
       },
     );
   }
+  // PLAY SONG
   Future<void> playSong(
       Song song,
       ) async {
-    final streamUrl = song.streamUrl?.trim();
+    final streamUrl =
+    song.streamUrl?.trim();
 
-    if (streamUrl == null || streamUrl.isEmpty) {
+    if (streamUrl == null ||
+        streamUrl.isEmpty) {
       throw Exception(
         'Song does not have a playable stream.',
       );
     }
 
-    // Every tap gets a new request.
-    // The newest request always wins.
-    final requestId = ++_requestId;
+    final requestId =
+    ++_requestId;
 
     _lastError = null;
-    //
-    // If the requested song is already loaded, don't recreate the source.
-    // This is the fastest possible path.
-    //
+
+    // -------------------------------------------------------------------------
+    // SAME SOURCE
+    // -------------------------------------------------------------------------
 
     if (_loadedSongId == song.id &&
         _loadedStreamUrl == streamUrl) {
-      if (!_isCurrentRequest(requestId)) {
+      if (!_isCurrentRequest(
+        requestId,
+      )) {
         return;
       }
 
@@ -166,18 +343,26 @@ class AudioPlayerService {
 
       return;
     }
+
+    // -------------------------------------------------------------------------
+    // NEW SOURCE
+    // -------------------------------------------------------------------------
+
     await _loadSourceAndStart(
       song: song,
       streamUrl: streamUrl,
       requestId: requestId,
     );
   }
+  // LOAD SOURCE + START
   Future<void> _loadSourceAndStart({
     required Song song,
     required String streamUrl,
     required int requestId,
   }) async {
-    if (!_isCurrentRequest(requestId)) {
+    if (!_isCurrentRequest(
+      requestId,
+    )) {
       return;
     }
 
@@ -191,35 +376,37 @@ class AudioPlayerService {
       );
 
       // -----------------------------------------------------------------------
-      // Stop the previous source first.
+      // STOP PREVIOUS SOURCE
       // -----------------------------------------------------------------------
 
       if (_player.audioSource != null) {
         try {
           await _player.stop();
         } catch (_) {
-          // Ignore stop errors while replacing a source.
+          // Ignore replacement errors.
         }
       }
 
-      if (!_isCurrentRequest(requestId)) {
+      if (!_isCurrentRequest(
+        requestId,
+      )) {
         return;
       }
 
       // -----------------------------------------------------------------------
-      // Load source.
-      //
-      // preload: false means don't block the tap waiting for the entire
-      // network source to buffer.
+      // LOAD
       // -----------------------------------------------------------------------
 
       await _player.setAudioSource(
         source,
         preload: false,
-        initialPosition: Duration.zero,
+        initialPosition:
+        Duration.zero,
       );
 
-      if (!_isCurrentRequest(requestId)) {
+      if (!_isCurrentRequest(
+        requestId,
+      )) {
         return;
       }
 
@@ -228,37 +415,34 @@ class AudioPlayerService {
       _isPreparing = false;
 
       // -----------------------------------------------------------------------
-      // Start immediately.
+      // PLAY
       // -----------------------------------------------------------------------
 
       await play();
     } on PlayerInterruptedException {
-      if (_isCurrentRequest(requestId)) {
+      if (_isCurrentRequest(
+        requestId,
+      )) {
         rethrow;
       }
-    } catch (error, stackTrace) {
-      if (!_isCurrentRequest(requestId)) {
+    } catch (error) {
+      if (!_isCurrentRequest(
+        requestId,
+      )) {
         return;
       }
 
       _lastError = error;
 
-      debugPrint(
-        '🔴 CHAMELEON LOAD ERROR: $error',
-      );
-
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
-
       rethrow;
     } finally {
-      if (_preparingRequestId == requestId) {
+      if (_preparingRequestId ==
+          requestId) {
         _isPreparing = false;
       }
     }
   }
-
+  // MEDIA ITEM
   MediaItem _mediaItemFor(
       Song song,
       ) {
@@ -271,75 +455,59 @@ class AudioPlayerService {
       artist: song.artist,
       album: 'Chameleon',
 
-      // IMPORTANT:
-      // Do not use Song.duration here.
+      // -----------------------------------------------------------------------
+      // IMPORTANT
       //
-      // just_audio will determine the real duration
-      // from the actual audio stream.
+      // Do not pass Song.duration here.
+      //
+      // just_audio determines duration from
+      // the actual audio stream.
+      // -----------------------------------------------------------------------
 
       artUri: thumbnail != null &&
           thumbnail.isNotEmpty
-          ? Uri.tryParse(thumbnail)
+          ? Uri.tryParse(
+        thumbnail,
+      )
           : null,
 
       playable: true,
     );
   }
+  // AUDIO SOURCE
   AudioSource _createSource(
       Song song,
       String streamUrl,
       ) {
-    final uri = Uri.parse(
-      streamUrl,
-    );
-    //
-    // Do NOT force YouTube Referer / Origin headers here.
-    //
-    // This is intentionally kept simple for iOS compatibility.
-    //
-    // If your resolver absolutely requires custom headers, we can add them
-    // back after confirming that basic iOS playback works.
-    //
+    final uri =
+    Uri.parse(streamUrl);
 
     return AudioSource.uri(
       uri,
       tag: _mediaItemFor(song),
     );
   }
+  // PLAY
   Future<void> play() async {
     try {
       await _player.play();
-    } catch (error, stackTrace) {
+    } catch (error) {
       _lastError = error;
-
-      debugPrint(
-        '🔴 CHAMELEON PLAY FAILED: $error',
-      );
-
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
 
       rethrow;
     }
   }
+  // PAUSE
   Future<void> pause() async {
     try {
       await _player.pause();
-    } catch (error, stackTrace) {
+    } catch (error) {
       _lastError = error;
-
-      debugPrint(
-        '🔴 CHAMELEON PAUSE FAILED: $error',
-      );
-
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
 
       rethrow;
     }
   }
+  // TOGGLE
   Future<void> togglePlayPause() async {
     if (_player.playing) {
       await pause();
@@ -347,6 +515,7 @@ class AudioPlayerService {
       await play();
     }
   }
+  // STOP
   Future<void> stop() async {
     _requestId++;
 
@@ -359,6 +528,7 @@ class AudioPlayerService {
       _lastError = null;
     }
   }
+  // SEEK
   Future<void> seek(
       Duration position,
       ) async {
@@ -366,6 +536,7 @@ class AudioPlayerService {
       position,
     );
   }
+  // VOLUME
   Future<void> setVolume(
       double volume,
       ) async {
@@ -376,24 +547,31 @@ class AudioPlayerService {
       ),
     );
   }
+  // PREPARE SONG
   Future<void> prepareSong(
       Song song,
       ) async {
-    final streamUrl = song.streamUrl?.trim();
+    final streamUrl =
+    song.streamUrl?.trim();
 
-    if (streamUrl == null || streamUrl.isEmpty) {
+    if (streamUrl == null ||
+        streamUrl.isEmpty) {
       throw Exception(
         'Song does not have a playable stream.',
       );
     }
 
-    // Already loaded.
+    // -------------------------------------------------------------------------
+    // ALREADY LOADED
+    // -------------------------------------------------------------------------
+
     if (_loadedSongId == song.id &&
         _loadedStreamUrl == streamUrl) {
       return;
     }
 
-    final requestId = ++_requestId;
+    final requestId =
+    ++_requestId;
 
     _isPreparing = true;
     _preparingRequestId = requestId;
@@ -407,41 +585,42 @@ class AudioPlayerService {
       await _player.setAudioSource(
         source,
         preload: true,
-        initialPosition: Duration.zero,
+        initialPosition:
+        Duration.zero,
       );
 
-      if (!_isCurrentRequest(requestId)) {
+      if (!_isCurrentRequest(
+        requestId,
+      )) {
         return;
       }
 
       _loadedSongId = song.id;
       _loadedStreamUrl = streamUrl;
     } on PlayerInterruptedException {
-      if (_isCurrentRequest(requestId)) {
+      if (_isCurrentRequest(
+        requestId,
+      )) {
         rethrow;
       }
-    } catch (error, stackTrace) {
-      if (!_isCurrentRequest(requestId)) {
+    } catch (error) {
+      if (!_isCurrentRequest(
+        requestId,
+      )) {
         return;
       }
 
       _lastError = error;
 
-      debugPrint(
-        '🔴 CHAMELEON PREPARE ERROR: $error',
-      );
-
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
-
       rethrow;
     } finally {
-      if (_preparingRequestId == requestId) {
+      if (_preparingRequestId ==
+          requestId) {
         _isPreparing = false;
       }
     }
   }
+  // CLEAR SOURCE
   Future<void> clearSource() async {
     _requestId++;
 
@@ -454,11 +633,13 @@ class AudioPlayerService {
       _lastError = null;
     }
   }
+  // REQUEST VALIDATION
   bool _isCurrentRequest(
       int requestId,
       ) {
     return requestId == _requestId;
   }
+  // DISPOSE
   Future<void> dispose() async {
     _requestId++;
 
@@ -466,6 +647,12 @@ class AudioPlayerService {
     _loadedStreamUrl = null;
     _isPreparing = false;
     _lastError = null;
+
+    try {
+      await _equalizer.setEnabled(
+        false,
+      );
+    } catch (_) {}
 
     await _player.dispose();
   }

@@ -8,6 +8,7 @@ import '../../data/models/song.dart';
 import '../../data/services/music_controller_provider.dart';
 import '../../data/services/settings_service.dart';
 
+import '../data/services/audio_player_service.dart';
 import '../data/services/music_controller.dart';
 import '../features/home/home_screen.dart';
 import '../features/search/search_screen.dart';
@@ -17,10 +18,12 @@ import '../features/player/now_playing_screen.dart';
 
 class BottomNav extends StatefulWidget {
   final SettingsService settings;
+  final AudioPlayerService audioPlayerService;
 
   const BottomNav({
     super.key,
     required this.settings,
+    required this.audioPlayerService,
   });
 
   @override
@@ -45,6 +48,7 @@ class _BottomNavState extends State<BottomNav> {
       const LibraryScreen(),
       SettingsScreen(
         settings: widget.settings,
+        audioPlayerService: widget.audioPlayerService,
       ),
     ];
   }

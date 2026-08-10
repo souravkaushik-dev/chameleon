@@ -1,16 +1,20 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_hicons/flutter_hicons.dart' show Hicons;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/services/audio_player_service.dart';
 import '../../data/services/settings_service.dart';
 import '../../navigation/bottom_nav.dart';
 import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   final SettingsService settings;
+  final AudioPlayerService audioPlayerService;
 
   const SplashScreen({
     super.key,
     required this.settings,
+    required this.audioPlayerService,
   });
 
   @override
@@ -246,10 +250,12 @@ class _SplashScreenState
     if (_onboardingCompleted) {
       destination = BottomNav(
         settings: widget.settings,
+        audioPlayerService: widget.audioPlayerService,
       );
     } else {
       destination = OnboardingScreen(
         settings: widget.settings,
+        audioPlayerService: widget.audioPlayerService,
       );
     }
 
@@ -591,8 +597,8 @@ class _ChameleonMark
                 ),
                 child:
                 Icon(
-                  Icons
-                      .music_note_rounded,
+                  Hicons
+                      .musicnoteLightOutline,
                   size:
                   39,
                   color:

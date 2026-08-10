@@ -22,6 +22,7 @@ class MusicController extends ChangeNotifier {
   final PlaylistService _playlistService;
 
   ChameleonAudioHandler? _audioHandler;
+
   MusicController({
     YoutubeService? youtubeService,
     AudioPlayerService? audioPlayerService,
@@ -40,6 +41,10 @@ class MusicController extends ChangeNotifier {
             playlistService ?? PlaylistService() {
     _bindPlayerStreams();
   }
+
+  AudioPlayerService get audioPlayerService =>
+      _audioPlayerService;
+
   PlaybackState _playbackState =
   const PlaybackState();
   List<Song> _searchResults = [];

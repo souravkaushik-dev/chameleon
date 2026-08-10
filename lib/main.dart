@@ -8,7 +8,6 @@ import 'data/services/settings_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-
   await JustAudioBackground.init(
     androidNotificationChannelId:
     'com.studios.chameleon.audio',
@@ -16,26 +15,26 @@ Future<void> main() async {
     'Chameleon Music',
     androidNotificationChannelDescription:
     'Music playback controls',
-    androidNotificationOngoing:
-    true,
+    androidNotificationOngoing: true,
     androidNotificationIcon:
     'mipmap/ic_launcher',
-    androidResumeOnClick:
-    true,
+    androidResumeOnClick: true,
   );
 
-  await MusicControllerProvider
-      .instance
-      .initialize();
+  final musicController =
+      MusicControllerProvider.instance;
 
-  final settings =
-  SettingsService();
+  await musicController.initialize();
+
+  final settings = SettingsService();
 
   await settings.initialize();
 
   runApp(
     ChameleonApp(
       settings: settings,
+      audioPlayerService:
+      musicController.audioPlayerService,
     ),
   );
 }

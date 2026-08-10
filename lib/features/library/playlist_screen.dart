@@ -642,13 +642,10 @@ class _PlaylistScreenState
           AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-          // ===================================================================
           // HERO
           //
           // IMPORTANT:
           // Do NOT put .animate() on this sliver.
-          // ===================================================================
-
           _CinematicHero(
             key: ValueKey<String>(
               'hero_${playlist.id}',
@@ -664,14 +661,10 @@ class _PlaylistScreenState
               );
             },
           ),
-
-          // ===================================================================
           // ACTIONS
           //
           // IMPORTANT:
           // Animation is INSIDE SliverToBoxAdapter.
-          // ===================================================================
-
           SliverToBoxAdapter(
             child: Padding(
               padding:
@@ -755,14 +748,10 @@ class _PlaylistScreenState
                 ),
               ),
             ),
-
-          // ===================================================================
           // SONG LIST
           //
           // SliverList itself is NOT animated.
           // Individual normal song tiles can be animated safely.
-          // ===================================================================
-
           if (songs.isNotEmpty)
             SliverPadding(
               padding:

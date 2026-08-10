@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_hicons/flutter_hicons.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
-
+import '../../data/services/audio_player_service.dart';
 import '../../data/services/settings_service.dart';
+import 'equalizer.dart';
 
 class SettingsScreen extends StatefulWidget {
   final SettingsService settings;
 
+  final AudioPlayerService audioPlayerService;
+
+  final VoidCallback? onOpenGithub;
+
+  final String version;
+
   const SettingsScreen({
     super.key,
     required this.settings,
+    required this.audioPlayerService,
+    this.onOpenGithub,
+    this.version = '1.0.1+2',
   });
 
   @override
@@ -18,14 +29,13 @@ class SettingsScreen extends StatefulWidget {
       _SettingsScreenState();
 }
 
-class _SettingsScreenState
-    extends State<SettingsScreen> {
-  SettingsService get settings =>
-      widget.settings;
+class _SettingsScreenState extends State<SettingsScreen> {
+  SettingsService get settings => widget.settings;
 
   @override
   void initState() {
     super.initState();
+
     settings.addListener(
       _onSettingsChanged,
     );
@@ -36,14 +46,33 @@ class _SettingsScreenState
     settings.removeListener(
       _onSettingsChanged,
     );
+
     super.dispose();
   }
 
-  void _onSettingsChanged() {
-    if (mounted) {
-      setState(() {});
-    }
+  void _openEqualizer() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => EqualizerScreen(
+          audioService: widget.audioPlayerService,
+        ),
+      ),
+    );
   }
+
+
+  void _onSettingsChanged() {
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {});
+  }
+
+  // -------------------------------------------------------------------------
+  // APPEARANCE
+  // -------------------------------------------------------------------------
+
   Future<void> _showThemePicker() async {
     final selected =
     await showModalBottomSheet<ThemeMode>(
@@ -51,36 +80,30 @@ class _SettingsScreenState
       backgroundColor: Colors.transparent,
       elevation: 0,
       useSafeArea: true,
+      isScrollControlled: true,
       builder: (context) {
         return _ChoiceSheet<ThemeMode>(
           title: 'Appearance',
-          subtitle:
-          'Choose how Chameleon should look',
+          subtitle: 'Choose how Chameleon should look',
           selected: settings.themeMode,
           items: const [
             _ChoiceItem(
               value: ThemeMode.system,
               title: 'System',
-              subtitle:
-              'Follow your device appearance',
-              icon:
-              Icons.brightness_auto_rounded,
+              subtitle: 'Follow your device appearance',
+              icon: Icons.brightness_auto_rounded,
             ),
             _ChoiceItem(
               value: ThemeMode.light,
               title: 'Light',
-              subtitle:
-              'Always use light mode',
-              icon:
-              Icons.light_mode_rounded,
+              subtitle: 'Always use light mode',
+              icon: Icons.light_mode_rounded,
             ),
             _ChoiceItem(
               value: ThemeMode.dark,
               title: 'Dark',
-              subtitle:
-              'Always use dark mode',
-              icon:
-              Icons.dark_mode_rounded,
+              subtitle: 'Always use dark mode',
+              icon: Icons.dark_mode_rounded,
             ),
           ],
         );
@@ -88,11 +111,14 @@ class _SettingsScreenState
     );
 
     if (selected != null) {
-      await settings.setThemeMode(
-        selected,
-      );
+      await settings.setThemeMode(selected);
     }
   }
+
+  // -------------------------------------------------------------------------
+  // RECENTLY PLAYED
+  // -------------------------------------------------------------------------
+
   Future<void> _showRecentLimit() async {
     final selected =
     await showModalBottomSheet<int>(
@@ -100,36 +126,30 @@ class _SettingsScreenState
       backgroundColor: Colors.transparent,
       elevation: 0,
       useSafeArea: true,
+      isScrollControlled: true,
       builder: (context) {
         return _ChoiceSheet<int>(
           title: 'Recently played',
-          subtitle:
-          'Choose how many songs to remember',
-          selected:
-          settings.recentLimit,
+          subtitle: 'Choose how many songs to remember',
+          selected: settings.recentLimit,
           items: const [
             _ChoiceItem(
               value: 25,
               title: '25 songs',
-              subtitle:
-              'Keep a smaller history',
-              icon:
-              Icons.history_rounded,
+              subtitle: 'Keep a smaller history',
+              icon: Icons.history_rounded,
             ),
             _ChoiceItem(
               value: 50,
               title: '50 songs',
               subtitle: 'Recommended',
-              icon:
-              Icons.history_rounded,
+              icon: Icons.history_rounded,
             ),
             _ChoiceItem(
               value: 100,
               title: '100 songs',
-              subtitle:
-              'Keep more listening history',
-              icon:
-              Icons.history_rounded,
+              subtitle: 'Keep more listening history',
+              icon: Icons.history_rounded,
             ),
           ],
         );
@@ -137,28 +157,35 @@ class _SettingsScreenState
     );
 
     if (selected != null) {
-      await settings.setRecentLimit(
-        selected,
-      );
+      await settings.setRecentLimit(selected);
     }
   }
+
+  // -------------------------------------------------------------------------
+  // RESET
+  // -------------------------------------------------------------------------
+
   Future<void> _resetSettings() async {
     final confirmed =
     await showDialog<bool>(
       context: context,
       builder: (context) {
-        final theme =
-        Theme.of(context);
+        final theme = Theme.of(context);
 
         return AlertDialog(
           backgroundColor:
-          theme.scaffoldBackgroundColor,
+          theme.colorScheme.surface,
           elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24.r),
+          ),
           title: const Text(
             'Reset settings?',
           ),
           content: const Text(
-            'Your settings will be restored to their defaults. Your playlists, liked songs, and recently played songs will not be deleted.',
+            'Your settings will be restored to their defaults. '
+                'Your playlists, liked songs, and recently played songs '
+                'will not be deleted.',
           ),
           actions: [
             TextButton(
@@ -168,22 +195,20 @@ class _SettingsScreenState
                   false,
                 );
               },
-              child:
-              const Text('Cancel'),
+              child: const Text(
+                'Cancel',
+              ),
             ),
-            TextButton(
+            FilledButton(
               onPressed: () {
                 Navigator.pop(
                   context,
                   true,
                 );
               },
-              style: TextButton.styleFrom(
-                foregroundColor:
-                theme.colorScheme.primary,
+              child: const Text(
+                'Reset',
               ),
-              child:
-              const Text('Reset'),
             ),
           ],
         );
@@ -204,11 +229,35 @@ class _SettingsScreenState
       'Settings restored',
     );
   }
+
+  // -------------------------------------------------------------------------
+  // ABOUT
+  // -------------------------------------------------------------------------
+
+  void _showAbout() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (context) {
+        return _AboutSheet(
+          version: widget.version,
+          onGithub: widget.onOpenGithub,
+        );
+      },
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // MESSAGE
+  // -------------------------------------------------------------------------
+
   void _showMessage(
       String message,
       ) {
-    final theme =
-    Theme.of(context);
+    final theme = Theme.of(context);
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -226,16 +275,18 @@ class _SettingsScreenState
             20.h,
           ),
           elevation: 0,
-          shape:
-          RoundedRectangleBorder(
+          shape: RoundedRectangleBorder(
             borderRadius:
-            BorderRadius.circular(
-              18.r,
-            ),
+            BorderRadius.circular(18.r),
           ),
         ),
       );
   }
+
+  // -------------------------------------------------------------------------
+  // THEME NAME
+  // -------------------------------------------------------------------------
+
   String _themeName(
       ThemeMode mode,
       ) {
@@ -250,25 +301,29 @@ class _SettingsScreenState
         return 'System default';
     }
   }
+
+  // -------------------------------------------------------------------------
+  // BUILD
+  // -------------------------------------------------------------------------
+
   @override
   Widget build(
       BuildContext context,
       ) {
-    final theme =
-    Theme.of(context);
-
-    final appColor =
-        theme.colorScheme.primary;
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.primary;
 
     return Scaffold(
       backgroundColor:
       theme.scaffoldBackgroundColor,
-
       body: CustomScrollView(
         physics:
         const BouncingScrollPhysics(),
-
         slivers: [
+          // -----------------------------------------------------------------
+          // APP BAR
+          // -----------------------------------------------------------------
+
           SliverAppBar(
             pinned: true,
             elevation: 0,
@@ -278,7 +333,7 @@ class _SettingsScreenState
             surfaceTintColor:
             Colors.transparent,
             titleSpacing: 20.w,
-
+            toolbarHeight: 64.h,
             title: Text(
               'Settings',
               style: TextStyle(
@@ -289,17 +344,22 @@ class _SettingsScreenState
               ),
             ),
           ),
+
+          // -----------------------------------------------------------------
+          // HERO
+          // -----------------------------------------------------------------
+
           SliverToBoxAdapter(
             child: Padding(
-              padding:
-              EdgeInsets.fromLTRB(
+              padding: EdgeInsets.fromLTRB(
                 20.w,
                 8.h,
                 20.w,
                 22.h,
               ),
               child: _SettingsHero(
-                color: appColor,
+                color: color,
+                version: widget.version,
               )
                   .animate()
                   .fadeIn(
@@ -314,11 +374,15 @@ class _SettingsScreenState
               ),
             ),
           ),
+
+          // -----------------------------------------------------------------
+          // APPEARANCE
+          // -----------------------------------------------------------------
+
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'Appearance',
-              icon:
-              Icons.palette_rounded,
+              icon: Icons.palette_rounded,
               children: [
                 _SettingsTile(
                   icon:
@@ -334,6 +398,11 @@ class _SettingsScreenState
               ],
             ),
           ),
+
+          // -----------------------------------------------------------------
+          // PLAYER
+          // -----------------------------------------------------------------
+
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'Player',
@@ -342,8 +411,7 @@ class _SettingsScreenState
               children: [
                 _AnimatedSwitchTile(
                   icon:
-                  Icons
-                      .keyboard_arrow_up_rounded,
+                  Icons.keyboard_arrow_up_rounded,
                   title: 'Mini player',
                   subtitle:
                   'Show the current song above the navigation bar',
@@ -352,14 +420,25 @@ class _SettingsScreenState
                   onChanged:
                   settings.setMiniPlayer,
                 ),
+
+                _SettingsTile(
+                  icon: Icons.equalizer_rounded,
+                  title: 'Equalizer',
+                  subtitle: 'Adjust bass, vocals and other frequencies',
+                  onTap: _openEqualizer,
+                ),
               ],
             ),
           ),
+
+          // -----------------------------------------------------------------
+          // SEARCH
+          // -----------------------------------------------------------------
+
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'Search',
-              icon:
-              Icons.search_rounded,
+              icon: Icons.search_rounded,
               children: [
                 _AnimatedSwitchTile(
                   icon:
@@ -375,6 +454,11 @@ class _SettingsScreenState
               ],
             ),
           ),
+
+          // -----------------------------------------------------------------
+          // LIBRARY
+          // -----------------------------------------------------------------
+
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'Library',
@@ -384,8 +468,7 @@ class _SettingsScreenState
                 _SettingsTile(
                   icon:
                   Icons.history_rounded,
-                  title:
-                  'Recently played',
+                  title: 'Recently played',
                   subtitle:
                   '${settings.recentLimit} songs',
                   onTap:
@@ -394,19 +477,24 @@ class _SettingsScreenState
               ],
             ),
           ),
+
+          // -----------------------------------------------------------------
+          // ABOUT
+          // -----------------------------------------------------------------
+
           SliverToBoxAdapter(
             child: _SettingsSection(
               title: 'About',
-              icon:
-              Icons.info_rounded,
+              icon: Icons.info_rounded,
               children: [
                 _SettingsTile(
                   icon:
-                  Icons.music_note_rounded,
-                  title: 'Chameleon',
+                  Icons.info_outline_rounded,
+                  title: 'About Chameleon',
                   subtitle:
-                  'Version 1.0.0',
-                  showChevron: false,
+                  'Version ${widget.version}',
+                  onTap:
+                  _showAbout,
                 ),
 
                 _SettingsTile(
@@ -414,12 +502,13 @@ class _SettingsScreenState
                   Icons.code_rounded,
                   title: 'GitHub',
                   subtitle:
-                  'Open-source project',
-                  onTap: () {
-                    _showMessage(
-                      'GitHub link coming soon',
-                    );
-                  },
+                  'View the Chameleon project',
+                  onTap:
+                  widget.onOpenGithub,
+                  trailing:
+                  widget.onOpenGithub == null
+                      ? const _UnavailableBadge()
+                      : null,
                 ),
 
                 _SettingsTile(
@@ -435,63 +524,69 @@ class _SettingsScreenState
                       applicationName:
                       'Chameleon',
                       applicationVersion:
-                      '1.0.0',
+                      widget.version,
                     );
                   },
-                ),
-
-                _SettingsTile(
-                  icon:
-                  Icons.storefront_rounded,
-                  title:
-                  'Google Play',
-                  subtitle:
-                  'Chameleon is coming soon',
-                  trailing:
-                  _ComingSoonBadge(
-                    color: appColor,
-                  ),
-                  showChevron: false,
                 ),
               ],
             ),
           ),
+
+          // -----------------------------------------------------------------
+          // RESET
+          // -----------------------------------------------------------------
+
           SliverToBoxAdapter(
             child: Padding(
-              padding:
-              EdgeInsets.fromLTRB(
+              padding: EdgeInsets.fromLTRB(
                 20.w,
                 2.h,
                 20.w,
                 10.h,
               ),
               child: _ResetTile(
-                color: appColor,
+                color: color,
                 onTap:
                 _resetSettings,
               ),
             ),
           ),
+
+          // -----------------------------------------------------------------
+          // FOOTER
+          // -----------------------------------------------------------------
+
           SliverToBoxAdapter(
             child: Padding(
-              padding:
-              EdgeInsets.fromLTRB(
+              padding: EdgeInsets.fromLTRB(
                 20.w,
-                15.h,
+                18.h,
                 20.w,
-                125.h,
+                120.h,
               ),
               child: Column(
                 children: [
-                  Icon(
-                    Icons
-                        .music_note_rounded,
-                    size: 24.sp,
-                    color: appColor,
+                  Container(
+                    width: 48.w,
+                    height: 48.w,
+                    decoration:
+                    BoxDecoration(
+                      color: color.withValues(
+                        alpha: 0.10,
+                      ),
+                      shape:
+                      BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons
+                          .music_note_rounded,
+                      size: 23.sp,
+                      color: color,
+                    ),
                   ),
 
                   SizedBox(
-                    height: 8.h,
+                    height: 10.h,
                   ),
 
                   Text(
@@ -499,7 +594,7 @@ class _SettingsScreenState
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight:
-                      FontWeight.w600,
+                      FontWeight.w700,
                       color: theme
                           .colorScheme
                           .onSurfaceVariant,
@@ -507,7 +602,7 @@ class _SettingsScreenState
                   ),
 
                   SizedBox(
-                    height: 3.h,
+                    height: 4.h,
                   ),
 
                   Text(
@@ -531,12 +626,15 @@ class _SettingsScreenState
     );
   }
 }
+// SETTINGS HERO
 class _SettingsHero
     extends StatelessWidget {
   final Color color;
+  final String version;
 
   const _SettingsHero({
     required this.color,
+    required this.version,
   });
 
   @override
@@ -546,31 +644,40 @@ class _SettingsHero
     return Container(
       padding:
       EdgeInsets.all(20.w),
-
       decoration:
       BoxDecoration(
-        color: color,
+        gradient:
+        LinearGradient(
+          begin:
+          Alignment.topLeft,
+          end:
+          Alignment.bottomRight,
+          colors: [
+            color,
+            color.withValues(
+              alpha: 0.78,
+            ),
+          ],
+        ),
         borderRadius:
         BorderRadius.circular(
           28.r,
         ),
       ),
-
       child: Row(
         children: [
           Container(
             width: 58.w,
             height: 58.w,
-
             decoration:
             BoxDecoration(
-              color: Colors.white
-                  .withValues(
+              color:
+              Colors.white.withValues(
                 alpha: 0.14,
               ),
-              shape: BoxShape.circle,
+              shape:
+              BoxShape.circle,
             ),
-
             child: const Icon(
               Icons
                   .music_note_rounded,
@@ -587,16 +694,17 @@ class _SettingsHero
             child: Column(
               crossAxisAlignment:
               CrossAxisAlignment.start,
-
               children: [
                 Text(
                   'Chameleon',
                   style: TextStyle(
-                    color: Colors.white,
+                    color:
+                    Colors.white,
                     fontSize: 19.sp,
                     fontWeight:
                     FontWeight.w800,
-                    letterSpacing: -0.3,
+                    letterSpacing:
+                    -0.3,
                   ),
                 ),
 
@@ -615,6 +723,23 @@ class _SettingsHero
                     height: 1.3,
                   ),
                 ),
+
+                SizedBox(
+                  height: 8.h,
+                ),
+
+                Text(
+                  'Version $version',
+                  style: TextStyle(
+                    color: Colors.white
+                        .withValues(
+                      alpha: 0.55,
+                    ),
+                    fontSize: 9.5.sp,
+                    fontWeight:
+                    FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
@@ -623,6 +748,7 @@ class _SettingsHero
     );
   }
 }
+// SETTINGS SECTION
 class _SettingsSection
     extends StatelessWidget {
   final String title;
@@ -642,7 +768,7 @@ class _SettingsSection
     final theme =
     Theme.of(context);
 
-    final appColor =
+    final color =
         theme.colorScheme.primary;
 
     return Padding(
@@ -653,11 +779,9 @@ class _SettingsSection
         20.w,
         15.h,
       ),
-
       child: Column(
         crossAxisAlignment:
         CrossAxisAlignment.start,
-
         children: [
           Padding(
             padding:
@@ -667,13 +791,12 @@ class _SettingsSection
               4.w,
               8.h,
             ),
-
             child: Row(
               children: [
                 Icon(
                   icon,
                   size: 16.sp,
-                  color: appColor,
+                  color: color,
                 ),
 
                 SizedBox(
@@ -686,7 +809,8 @@ class _SettingsSection
                     fontSize: 10.sp,
                     fontWeight:
                     FontWeight.w800,
-                    letterSpacing: 1.05,
+                    letterSpacing:
+                    1.05,
                     color: theme
                         .colorScheme
                         .onSurfaceVariant,
@@ -695,10 +819,6 @@ class _SettingsSection
               ],
             ),
           ),
-
-          // Flat.
-          // No border.
-          // No shadow.
 
           Container(
             decoration:
@@ -711,13 +831,11 @@ class _SettingsSection
                 24.r,
               ),
             ),
-
             child: ClipRRect(
               borderRadius:
               BorderRadius.circular(
                 24.r,
               ),
-
               child: Column(
                 children: [
                   for (
@@ -740,6 +858,7 @@ class _SettingsSection
     );
   }
 }
+// DIVIDER
 class _SoftDivider
     extends StatelessWidget {
   const _SoftDivider();
@@ -757,7 +876,6 @@ class _SoftDivider
         left: 68.w,
         right: 14.w,
       ),
-
       child: Container(
         height: 1,
         color: theme
@@ -770,6 +888,7 @@ class _SoftDivider
     );
   }
 }
+// SETTINGS TILE
 class _SettingsTile
     extends StatelessWidget {
   final IconData icon;
@@ -797,29 +916,26 @@ class _SettingsTile
 
     return Material(
       color: Colors.transparent,
-
       child: InkWell(
         onTap: onTap,
-
-        splashColor:
-        theme.colorScheme.primary
+        splashColor: theme
+            .colorScheme
+            .primary
             .withValues(
           alpha: 0.06,
         ),
-
-        highlightColor:
-        theme.colorScheme.primary
+        highlightColor: theme
+            .colorScheme
+            .primary
             .withValues(
           alpha: 0.035,
         ),
-
         child: Padding(
           padding:
           EdgeInsets.symmetric(
             horizontal: 14.w,
             vertical: 12.h,
           ),
-
           child: Row(
             children: [
               _SettingsIcon(
@@ -839,7 +955,8 @@ class _SettingsTile
                       title,
                       maxLines: 1,
                       overflow:
-                      TextOverflow.ellipsis,
+                      TextOverflow
+                          .ellipsis,
                       style: TextStyle(
                         fontSize: 13.sp,
                         fontWeight:
@@ -855,7 +972,8 @@ class _SettingsTile
                       subtitle,
                       maxLines: 2,
                       overflow:
-                      TextOverflow.ellipsis,
+                      TextOverflow
+                          .ellipsis,
                       style: TextStyle(
                         fontSize: 10.5.sp,
                         height: 1.25,
@@ -897,13 +1015,15 @@ class _SettingsTile
     );
   }
 }
+// SWITCH TILE
 class _AnimatedSwitchTile
     extends StatefulWidget {
   final IconData icon;
   final String title;
   final String subtitle;
   final bool value;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>
+  onChanged;
 
   const _AnimatedSwitchTile({
     required this.icon,
@@ -938,41 +1058,34 @@ class _AnimatedSwitchTileState
 
     return GestureDetector(
       onTap: _toggle,
-
       onTapDown: (_) {
         setState(() {
           _pressed = true;
         });
       },
-
       onTapCancel: () {
         setState(() {
           _pressed = false;
         });
       },
-
       onTapUp: (_) {
         setState(() {
           _pressed = false;
         });
       },
-
       child: AnimatedScale(
         scale:
         _pressed ? 0.985 : 1,
-
         duration:
         const Duration(
           milliseconds: 110,
         ),
-
         child: Padding(
           padding:
           EdgeInsets.symmetric(
             horizontal: 14.w,
             vertical: 10.h,
           ),
-
           child: Row(
             children: [
               _SettingsIcon(
@@ -988,7 +1101,8 @@ class _AnimatedSwitchTileState
               Expanded(
                 child: Column(
                   crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  CrossAxisAlignment
+                      .start,
                   children: [
                     Text(
                       widget.title,
@@ -1007,7 +1121,8 @@ class _AnimatedSwitchTileState
                       widget.subtitle,
                       maxLines: 2,
                       overflow:
-                      TextOverflow.ellipsis,
+                      TextOverflow
+                          .ellipsis,
                       style: TextStyle(
                         fontSize: 10.5.sp,
                         height: 1.25,
@@ -1027,8 +1142,7 @@ class _AnimatedSwitchTileState
               _AnimatedSwitch(
                 value:
                 widget.value,
-                onTap:
-                _toggle,
+                onTap: _toggle,
               ),
             ],
           ),
@@ -1037,7 +1151,9 @@ class _AnimatedSwitchTileState
     );
   }
 }
-class _AnimatedSwitch extends StatelessWidget {
+// LIQUID GLASS SWITCH
+class _AnimatedSwitch
+    extends StatelessWidget {
   final bool value;
   final VoidCallback onTap;
 
@@ -1050,27 +1166,29 @@ class _AnimatedSwitch extends StatelessWidget {
   Widget build(
       BuildContext context,
       ) {
-    final theme = Theme.of(context);
-    final accent = theme.colorScheme.primary;
+    final theme =
+    Theme.of(context);
 
     return LiquidGlassToggle(
       value: value,
-
-      activeColor: accent,
-
+      activeColor:
+      theme.colorScheme.primary,
       onChanged: (_) {
         onTap();
       },
-
-      style: LiquidGlassStyle(
-        shape: LiquidGlassShape.squircle(
+      style:
+      LiquidGlassStyle(
+        shape:
+        LiquidGlassShape.squircle(
           cornerRadius: 20,
-          borderType: OpticalBorder(
-            borderSaturation: 1.2,
-            ambientIntensity: 1.0,
+          borderType:
+          OpticalBorder(
+            borderSaturation:
+            1.2,
+            ambientIntensity:
+            1.0,
           ),
         ),
-
         refraction:
         const LiquidGlassRefraction(
           distortion: 0.10,
@@ -1081,6 +1199,7 @@ class _AnimatedSwitch extends StatelessWidget {
     );
   }
 }
+// SETTINGS ICON
 class _SettingsIcon
     extends StatelessWidget {
   final IconData icon;
@@ -1098,7 +1217,7 @@ class _SettingsIcon
     final theme =
     Theme.of(context);
 
-    final appColor =
+    final color =
         theme.colorScheme.primary;
 
     return AnimatedContainer(
@@ -1106,14 +1225,12 @@ class _SettingsIcon
       const Duration(
         milliseconds: 220,
       ),
-
       width: 42.w,
       height: 42.w,
-
       decoration:
       BoxDecoration(
         color: active
-            ? appColor.withValues(
+            ? color.withValues(
           alpha: 0.11,
         )
             : theme
@@ -1122,30 +1239,25 @@ class _SettingsIcon
             .withValues(
           alpha: 0.055,
         ),
-
         borderRadius:
         BorderRadius.circular(
           14.r,
         ),
       ),
-
-      child: AnimatedSwitcher(
+      child:
+      AnimatedSwitcher(
         duration:
         const Duration(
           milliseconds: 180,
         ),
-
         child: Icon(
           icon,
-
           key: ValueKey(
             '${icon.codePoint}_$active',
           ),
-
           size: 20.sp,
-
           color: active
-              ? appColor
+              ? color
               : theme
               .colorScheme
               .onSurfaceVariant,
@@ -1154,6 +1266,53 @@ class _SettingsIcon
     );
   }
 }
+// UNAVAILABLE BADGE
+class _UnavailableBadge
+    extends StatelessWidget {
+  const _UnavailableBadge();
+
+  @override
+  Widget build(
+      BuildContext context,
+      ) {
+    final theme =
+    Theme.of(context);
+
+    return Container(
+      padding:
+      EdgeInsets.symmetric(
+        horizontal: 8.w,
+        vertical: 5.h,
+      ),
+      decoration:
+      BoxDecoration(
+        color: theme
+            .colorScheme
+            .onSurface
+            .withValues(
+          alpha: 0.055,
+        ),
+        borderRadius:
+        BorderRadius.circular(
+          99.r,
+        ),
+      ),
+      child: Text(
+        'SET UP',
+        style: TextStyle(
+          fontSize: 8.sp,
+          fontWeight:
+          FontWeight.w800,
+          letterSpacing: 0.7,
+          color: theme
+              .colorScheme
+              .onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+// CHOICE ITEM
 class _ChoiceItem<T> {
   final T value;
   final String title;
@@ -1167,12 +1326,14 @@ class _ChoiceItem<T> {
     required this.icon,
   });
 }
+// CHOICE SHEET
 class _ChoiceSheet<T>
     extends StatelessWidget {
   final String title;
   final String subtitle;
   final T selected;
-  final List<_ChoiceItem<T>> items;
+  final List<_ChoiceItem<T>>
+  items;
 
   const _ChoiceSheet({
     required this.title,
@@ -1188,7 +1349,7 @@ class _ChoiceSheet<T>
     final theme =
     Theme.of(context);
 
-    final appColor =
+    final color =
         theme.colorScheme.primary;
 
     return Padding(
@@ -1199,7 +1360,6 @@ class _ChoiceSheet<T>
         10.w,
         10.h,
       ),
-
       child: Container(
         padding:
         EdgeInsets.fromLTRB(
@@ -1208,21 +1368,18 @@ class _ChoiceSheet<T>
           12.w,
           14.h,
         ),
-
         decoration:
         BoxDecoration(
-          color:
-          theme.scaffoldBackgroundColor,
+          color: theme
+              .scaffoldBackgroundColor,
           borderRadius:
           BorderRadius.circular(
             30.r,
           ),
         ),
-
         child: Column(
           mainAxisSize:
           MainAxisSize.min,
-
           children: [
             const _SheetHandle(),
 
@@ -1259,13 +1416,14 @@ class _ChoiceSheet<T>
               height: 15.h,
             ),
 
-            for (final item in items)
+            for (final item
+            in items)
               _ChoiceRow<T>(
                 item: item,
                 selected:
                 item.value ==
                     selected,
-                color: appColor,
+                color: color,
                 onTap: () {
                   Navigator.pop(
                     context,
@@ -1290,6 +1448,7 @@ class _ChoiceSheet<T>
     );
   }
 }
+// CHOICE ROW
 class _ChoiceRow<T>
     extends StatelessWidget {
   final _ChoiceItem<T> item;
@@ -1317,33 +1476,27 @@ class _ChoiceRow<T>
         alpha: 0.08,
       )
           : Colors.transparent,
-
       borderRadius:
       BorderRadius.circular(
         18.r,
       ),
-
       child: InkWell(
         borderRadius:
         BorderRadius.circular(
           18.r,
         ),
-
         onTap: onTap,
-
         child: Padding(
           padding:
           EdgeInsets.symmetric(
             horizontal: 8.w,
             vertical: 8.h,
           ),
-
           child: Row(
             children: [
               Container(
                 width: 45.w,
                 height: 45.w,
-
                 decoration:
                 BoxDecoration(
                   color: theme
@@ -1355,7 +1508,6 @@ class _ChoiceRow<T>
                   shape:
                   BoxShape.circle,
                 ),
-
                 child: Icon(
                   item.icon,
                   size: 21.sp,
@@ -1374,8 +1526,8 @@ class _ChoiceRow<T>
               Expanded(
                 child: Column(
                   crossAxisAlignment:
-                  CrossAxisAlignment.start,
-
+                  CrossAxisAlignment
+                      .start,
                   children: [
                     Text(
                       item.title,
@@ -1408,7 +1560,6 @@ class _ChoiceRow<T>
                 const Duration(
                   milliseconds: 180,
                 ),
-
                 child: selected
                     ? Icon(
                   Icons
@@ -1443,6 +1594,7 @@ class _ChoiceRow<T>
     );
   }
 }
+// SHEET HANDLE
 class _SheetHandle
     extends StatelessWidget {
   const _SheetHandle();
@@ -1457,7 +1609,6 @@ class _SheetHandle
     return Container(
       width: 38.w,
       height: 4.h,
-
       decoration:
       BoxDecoration(
         color: theme
@@ -1474,49 +1625,308 @@ class _SheetHandle
     );
   }
 }
-class _ComingSoonBadge
-    extends StatelessWidget {
-  final Color color;
 
-  const _ComingSoonBadge({
-    required this.color,
+class _AboutSheet extends StatelessWidget {
+  final String version;
+  final VoidCallback? onGithub;
+
+  const _AboutSheet({
+    required this.version,
+    required this.onGithub,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    final primary = colors.primary;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        10.w,
+        0,
+        10.w,
+        10.h,
+      ),
+      child: Container(
+        padding: EdgeInsets.fromLTRB(
+          20.w,
+          14.h,
+          20.w,
+          20.h,
+        ),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: BorderRadius.circular(30.r),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const _SheetHandle(),
+
+            SizedBox(height: 20.h),
+            // APP ICON
+            Container(
+              width: 76.w,
+              height: 76.w,
+              decoration: BoxDecoration(
+                color: primary.withValues(
+                  alpha: 0.11,
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Hicons.musicnoteLightOutline,
+                color: primary,
+                size: 38.sp,
+              ),
+            ),
+
+            SizedBox(height: 14.h),
+            // APP NAME
+            Text(
+              'Chameleon',
+              style: TextStyle(
+                fontSize: 25.sp,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.7,
+              ),
+            ),
+
+            SizedBox(height: 5.h),
+
+            Text(
+              'Music player',
+              style: TextStyle(
+                fontSize: 11.sp,
+                color: colors.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+
+            SizedBox(height: 6.h),
+
+            Text(
+              'Version $version',
+              style: TextStyle(
+                fontSize: 10.sp,
+                color: colors.onSurfaceVariant.withValues(
+                  alpha: 0.65,
+                ),
+              ),
+            ),
+
+            SizedBox(height: 22.h),
+            // FEATURES
+            _AboutInfoRow(
+              icon: Hicons.playLightOutline,
+              title: 'Real music playback',
+              subtitle:
+              'Smooth playback with background audio controls.',
+            ),
+
+            SizedBox(height: 8.h),
+
+            _AboutInfoRow(
+              icon: Hicons.search1LightOutline,
+              title: 'YouTube music discovery',
+              subtitle:
+              'Search and discover music with high-quality artwork.',
+            ),
+
+            SizedBox(height: 8.h),
+
+            _AboutInfoRow(
+              icon: Hicons.filter4LightOutline,
+              title: 'Built-in equalizer',
+              subtitle:
+              'Fine-tune bass, vocals, treble and individual frequencies.',
+            ),
+
+            SizedBox(height: 8.h),
+
+            _AboutInfoRow(
+              icon: Hicons.voiceLightOutline,
+              title: 'Sound presets',
+              subtitle:
+              'Quickly switch between Flat, Bass, Treble, Vocal, Pop, Rock and more.',
+            ),
+
+            SizedBox(height: 8.h),
+
+            _AboutInfoRow(
+              icon: Hicons.imageLightOutline,
+              title: 'High-resolution artwork',
+              subtitle:
+              'Beautiful album and song artwork throughout the player.',
+            ),
+
+            SizedBox(height: 8.h),
+
+            _AboutInfoRow(
+              icon: Hicons.dropLightOutline,
+              title: 'Liquid Glass interface',
+              subtitle:
+              'A refined interface with smooth animations and glass controls.',
+            ),
+
+            SizedBox(height: 18.h),
+            // GITHUB
+            if (onGithub != null) ...[
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+
+                    onGithub!();
+                  },
+                  icon: const Icon(
+                    Icons.code_rounded,
+                  ),
+                  label: const Text(
+                    'View on GitHub',
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 8.h),
+            ],
+            // FOOTER
+            Text(
+              'Made for music lovers.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 10.sp,
+                color: colors.onSurfaceVariant.withValues(
+                  alpha: 0.6,
+                ),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+
+            SizedBox(height: 6.h),
+          ],
+        ),
+      )
+          .animate()
+          .fadeIn(
+        duration: 220.ms,
+      )
+          .slideY(
+        begin: 0.04,
+        end: 0,
+        duration: 300.ms,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+  }
+}
+// ABOUT INFO
+class _AboutInfoRow
+    extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _AboutInfoRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
   });
 
   @override
   Widget build(
       BuildContext context,
       ) {
+    final theme =
+    Theme.of(context);
+
     return Container(
       padding:
-      EdgeInsets.symmetric(
-        horizontal: 9.w,
-        vertical: 5.h,
-      ),
-
+      EdgeInsets.all(13.w),
       decoration:
       BoxDecoration(
-        color: color.withValues(
-          alpha: 0.10,
-        ),
+        color: theme
+            .colorScheme
+            .surfaceContainerLow,
         borderRadius:
         BorderRadius.circular(
-          99.r,
+          18.r,
         ),
       ),
+      child: Row(
+        children: [
+          Container(
+            width: 42.w,
+            height: 42.w,
+            decoration:
+            BoxDecoration(
+              color: theme
+                  .colorScheme
+                  .primary
+                  .withValues(
+                alpha: 0.10,
+              ),
+              borderRadius:
+              BorderRadius.circular(
+                13.r,
+              ),
+            ),
+            child: Icon(
+              icon,
+              size: 20.sp,
+              color: theme
+                  .colorScheme
+                  .primary,
+            ),
+          ),
 
-      child: Text(
-        'SOON',
-        style: TextStyle(
-          fontSize: 8.sp,
-          fontWeight:
-          FontWeight.w800,
-          letterSpacing: 0.8,
-          color: color,
-        ),
+          SizedBox(
+            width: 12.w,
+          ),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight:
+                    FontWeight.w700,
+                  ),
+                ),
+
+                SizedBox(
+                  height: 3.h,
+                ),
+
+                Text(
+                  subtitle,
+                  maxLines: 2,
+                  overflow:
+                  TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10.sp,
+                    height: 1.25,
+                    color: theme
+                        .colorScheme
+                        .onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+// RESET TILE
 class _ResetTile
     extends StatelessWidget {
   final Color color;
@@ -1538,35 +1948,28 @@ class _ResetTile
       color: theme
           .colorScheme
           .surfaceContainerLow,
-
       borderRadius:
       BorderRadius.circular(
         22.r,
       ),
-
       child: InkWell(
         onTap: onTap,
-
         borderRadius:
         BorderRadius.circular(
           22.r,
         ),
-
         splashColor:
         color.withValues(
           alpha: 0.06,
         ),
-
         child: Padding(
           padding:
           EdgeInsets.all(14.w),
-
           child: Row(
             children: [
               Container(
                 width: 45.w,
                 height: 45.w,
-
                 decoration:
                 BoxDecoration(
                   color:
@@ -1576,7 +1979,6 @@ class _ResetTile
                   shape:
                   BoxShape.circle,
                 ),
-
                 child: Icon(
                   Icons
                       .restart_alt_rounded,
@@ -1591,8 +1993,8 @@ class _ResetTile
               Expanded(
                 child: Column(
                   crossAxisAlignment:
-                  CrossAxisAlignment.start,
-
+                  CrossAxisAlignment
+                      .start,
                   children: [
                     Text(
                       'Reset settings',
