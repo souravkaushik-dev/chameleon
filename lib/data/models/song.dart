@@ -7,6 +7,7 @@ class Song {
   final Duration? duration;
   final String? youtubeUrl;
   final String? streamUrl;
+  final int? releaseYear;
 
   const Song({
     required this.id,
@@ -17,6 +18,7 @@ class Song {
     this.duration,
     this.youtubeUrl,
     this.streamUrl,
+    this.releaseYear,
   });
 
   Song copyWith({
@@ -28,16 +30,23 @@ class Song {
     Duration? duration,
     String? youtubeUrl,
     String? streamUrl,
+    int? releaseYear,
   }) {
     return Song(
       id: id ?? this.id,
       title: title ?? this.title,
       artist: artist ?? this.artist,
       album: album ?? this.album,
-      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
-      duration: duration ?? this.duration,
-      youtubeUrl: youtubeUrl ?? this.youtubeUrl,
-      streamUrl: streamUrl ?? this.streamUrl,
+      thumbnailUrl:
+      thumbnailUrl ?? this.thumbnailUrl,
+      duration:
+      duration ?? this.duration,
+      youtubeUrl:
+      youtubeUrl ?? this.youtubeUrl,
+      streamUrl:
+      streamUrl ?? this.streamUrl,
+      releaseYear:
+      releaseYear ?? this.releaseYear,
     );
   }
 

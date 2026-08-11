@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hicons/flutter_hicons.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
@@ -44,8 +45,19 @@ class _BottomNavState extends State<BottomNav> {
 
     _screens = [
       const HomeScreen(),
-      const SearchScreen(),
+
+      // If your SearchScreen has been updated to receive SettingsService,
+      // change this to:
+      //
+      // SearchScreen(settings: widget.settings),
+      //
+      // For now this keeps your existing constructor.
+      SearchScreen(
+        settings: widget.settings,
+      ),
+
       const LibraryScreen(),
+
       SettingsScreen(
         settings: widget.settings,
         audioPlayerService: widget.audioPlayerService,
@@ -55,223 +67,216 @@ class _BottomNavState extends State<BottomNav> {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilPlusInit(
-      designSize: const Size(390, 844),
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (context, child) {
-        return AnimatedBuilder(
-          animation: controller,
-          builder: (context, _) {
-            final theme = Theme.of(context);
+    final mediaQuery = MediaQuery.of(context);
+    final theme = Theme.of(context);
 
-            final appColor =
-                theme.colorScheme.primary;
+    final bottomInset = mediaQuery.viewPadding.bottom;
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
 
-            final onSurface =
-                theme.colorScheme.onSurface;
+    final horizontalMargin =
+    (screenWidth * 0.041).clamp(12.0, 22.0);
 
-            final hasSong =
-                controller.currentSong != null;
+    final navigationWidth =
+    (screenWidth - (horizontalMargin * 2))
+        .clamp(280.0, 520.0);
 
-            return LiquidGlassScaffold(
-              backgroundColor:
-              theme.scaffoldBackgroundColor,
-              body: Stack(
-                children: [
-                  // ---------------------------------------------------------
-                  // APP SCREENS
-                  // ---------------------------------------------------------
+    final navigationHeight =
+    (screenHeight * 0.083).clamp(64.0, 76.0);
 
-                  Positioned.fill(
-                    child: IndexedStack(
-                      index: _currentIndex,
-                      children: _screens,
-                    ),
-                  ),
+    final navigationBottomMargin =
+    (screenHeight * 0.0118).clamp(8.0, 12.0);
 
-                  // ---------------------------------------------------------
-                  // GLOBAL MINI PLAYER
-                  // ---------------------------------------------------------
+    final miniPlayerGap =
+    (screenHeight * 0.0166).clamp(12.0, 16.0);
 
-                  if (hasSong)
-                    Positioned(
-                      left: 0,
-                      right: 0,
+    final miniPlayerBottom =
+        bottomInset +
+            navigationBottomMargin +
+            navigationHeight +
+            miniPlayerGap;
 
-                      // Navigation occupies approximately
-                      // 70px + bottom margin.
-                      //
-                      // Mini player is deliberately
-                      // positioned higher to create
-                      // a visible gap.
-                      bottom: 104.h,
+    final appColor =
+        theme.colorScheme.primary;
 
-                      child:
-                      const _GlobalMiniPlayer(),
-                    ),
-                ],
-              ),
-              bottomNavigationBar:
-              LiquidGlassBottomNavBar(
-                width: 358.w,
-                height: 70.h,
+    final onSurface =
+        theme.colorScheme.onSurface;
 
-                margin: EdgeInsets.only(
-                  left: 16.w,
-                  right: 16.w,
-                  bottom: 10.h,
-                ),
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        controller,
+        widget.settings,
+      ]),
+      builder: (context, _) {
+        final hasSong =
+            controller.currentSong != null;
 
-                alignment:
-                Alignment.bottomCenter,
+        final showMiniPlayer =
+            widget.settings.miniPlayer &&
+                hasSong;
 
-                itemPadding: 5,
+        return LiquidGlassScaffold(
+          backgroundColor:
+          theme.scaffoldBackgroundColor,
 
-                items: const [
-                  LiquidGlassTabBarItem(
-                    icon:
-                    Hicons.home2LightOutline,
-                    selectedIcon:
-                    Hicons.home2Bold,
-                    label: 'Home',
-                  ),
-                  LiquidGlassTabBarItem(
-                    icon:
-                    Hicons.search1LightOutline,
-                    selectedIcon:
-                    Hicons.search1Bold,
-                    label: 'Search',
-                  ),
-                  LiquidGlassTabBarItem(
-                    icon:
-                    Hicons.musicnoteLightOutline,
-                    selectedIcon:
-                    Hicons.musicnoteBold,
-                    label: 'Library',
-                  ),
-                  LiquidGlassTabBarItem(
-                    icon:
-                    Hicons.settingLightOutline,
-                    selectedIcon:
-                    Hicons.settingBold,
-                    label: 'Settings',
-                  ),
-                ],
-
-                selectedIndex:
-                _currentIndex,
-
-                onChanged: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
-                itemStyle:
-                LiquidGlassNavItemStyle(
-                  selectedColor:
-                  appColor,
-
-                  unselectedColor:
-                  onSurface.withValues(
-                    alpha: 0.62,
-                  ),
-
-                  iconSize: 23,
-
-                  labelFontSize: 11,
-
-                  iconLabelGap: 2,
-
-                  selectedFontWeight:
-                  FontWeight.w700,
-
-                  unselectedFontWeight:
-                  FontWeight.w600,
-                ),
-                pillStyle:
-                LiquidGlassNavPillStyle(
-                  mode:
-                  LiquidGlassPillMode.both,
-
-                  animated: true,
-
-                  animationDuration:
-                  const Duration(
-                    milliseconds: 360,
-                  ),
-
-                  animationCurve:
-                  Curves.easeOutCubic,
-
-                  color:
-                  appColor.withValues(
-                    alpha: 0.10,
-                  ),
-
-                  // Magnification
-                  magnification: 1.18,
-
-                  // Refraction
-                  distortion: 0.075,
-
-                  distortionWidth: 18,
-
-                  // Pill growth
-                  growHeight: 10,
-
-                  enableInnerRadiusTransparent:
-                  true,
-
-                  // Spring movement
-                  travelStiffness: 300,
-
-                  travelDamping: 30,
-
-                  // Jelly movement
-                  jelly:
-                  const LiquidGlassJellyConfig(
-                    style:
-                    LiquidGlassJellyStyle
-                        .squashStretch,
-
-                    stiffness: 260,
-
-                    damping: 13,
-
-                    maxVelocity: 6,
-
-                    velocityClamp: 60,
-
-                    stretchWidth: 17.1,
-
-                    squashHeight: 9.8,
-
-                    anchorBias: -1.0,
-
-                    recoilScale: 3.0,
-
-                    recoilAnchor: 1.0,
-
-                    directionTau: 0.42,
-                  ),
+          body: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: IndexedStack(
+                  index: _currentIndex,
+                  children: _screens,
                 ),
               ),
-            );
-          },
+              // GLOBAL MINI PLAYER
+              //
+              // The important part:
+              //
+              // showMiniPlayer =
+              //     widget.settings.miniPlayer && hasSong;
+              //
+              // This means the setting actually controls visibility.
+              //
+              if (showMiniPlayer)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: miniPlayerBottom,
+                  child: _GlobalMiniPlayer(
+                    settings: widget.settings,
+                  ),
+                ),
+            ],
+          ),
+
+          bottomNavigationBar:
+          LiquidGlassBottomNavBar(
+            width: navigationWidth,
+            height: navigationHeight,
+            margin: EdgeInsets.only(
+              left: horizontalMargin,
+              right: horizontalMargin,
+              bottom: navigationBottomMargin,
+            ),
+            alignment: Alignment.bottomCenter,
+            itemPadding: 5,
+
+            items: const [
+              LiquidGlassTabBarItem(
+                icon:
+                Hicons.home2LightOutline,
+                selectedIcon:
+                Hicons.home2Bold,
+                label: 'Home',
+              ),
+
+              LiquidGlassTabBarItem(
+                icon:
+                Hicons.search1LightOutline,
+                selectedIcon:
+                Hicons.search1Bold,
+                label: 'Search',
+              ),
+
+              LiquidGlassTabBarItem(
+                icon:
+                Hicons.musicnoteLightOutline,
+                selectedIcon:
+                Hicons.musicnoteBold,
+                label: 'Library',
+              ),
+
+              LiquidGlassTabBarItem(
+                icon:
+                Hicons.settingLightOutline,
+                selectedIcon:
+                Hicons.settingBold,
+                label: 'Settings',
+              ),
+            ],
+
+            selectedIndex: _currentIndex,
+
+            onChanged: (index) {
+              if (index == _currentIndex) {
+                return;
+              }
+
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+
+            itemStyle:
+            LiquidGlassNavItemStyle(
+              selectedColor: appColor,
+              unselectedColor:
+              onSurface.withValues(
+                alpha: 0.62,
+              ),
+              iconSize: 23,
+              labelFontSize: 11,
+              iconLabelGap: 2,
+              selectedFontWeight:
+              FontWeight.w700,
+              unselectedFontWeight:
+              FontWeight.w600,
+            ),
+
+            pillStyle:
+            LiquidGlassNavPillStyle(
+              mode:
+              LiquidGlassPillMode.both,
+              animated: true,
+              animationDuration:
+              const Duration(
+                milliseconds: 360,
+              ),
+              animationCurve:
+              Curves.easeOutCubic,
+              color:
+              appColor.withValues(
+                alpha: 0.10,
+              ),
+              magnification: 1.18,
+              distortion: 0.075,
+              distortionWidth: 18,
+              growHeight: 10,
+              enableInnerRadiusTransparent:
+              true,
+              travelStiffness: 300,
+              travelDamping: 30,
+
+              jelly:
+              const LiquidGlassJellyConfig(
+                style:
+                LiquidGlassJellyStyle
+                    .squashStretch,
+                stiffness: 260,
+                damping: 13,
+                maxVelocity: 6,
+                velocityClamp: 60,
+                stretchWidth: 17.1,
+                squashHeight: 9.8,
+                anchorBias: -1.0,
+                recoilScale: 3.0,
+                recoilAnchor: 1.0,
+                directionTau: 0.42,
+              ),
+            ),
+          ),
         );
       },
     );
   }
 }
-//
-// A separate, floating glass mini-player.
-// It intentionally sits above the liquid-glass navigation and does not
-// participate in the navigation bar itself.
-//
-
+// GLOBAL MINI PLAYER
 class _GlobalMiniPlayer extends StatefulWidget {
-  const _GlobalMiniPlayer();
+  final SettingsService settings;
+
+  const _GlobalMiniPlayer({
+    required this.settings,
+  });
 
   @override
   State<_GlobalMiniPlayer> createState() =>
@@ -281,18 +286,20 @@ class _GlobalMiniPlayer extends StatefulWidget {
 class _GlobalMiniPlayerState
     extends State<_GlobalMiniPlayer>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _pulseController;
+  late final AnimationController
+  _pulseController;
 
   @override
   void initState() {
     super.initState();
 
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(
-        milliseconds: 1800,
-      ),
-    );
+    _pulseController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(
+            milliseconds: 1800,
+          ),
+        );
   }
 
   @override
@@ -308,6 +315,7 @@ class _GlobalMiniPlayerState
           reverse: true,
         );
       }
+
       return;
     }
 
@@ -331,18 +339,28 @@ class _GlobalMiniPlayerState
     final controller =
         MusicControllerProvider.instance;
 
-    // IMPORTANT:
-    // The mini player listens directly to the controller.
-    // This makes play/pause state update immediately.
     return AnimatedBuilder(
-      animation: controller,
+      animation: Listenable.merge([
+        controller,
+        widget.settings,
+      ]),
       builder: (context, _) {
+        // SETTINGS CHECK
+        //
+        // This is the actual switch.
+        //
+        // If Mini Player is OFF, the entire widget disappears.
+        //
+        if (!widget.settings.miniPlayer) {
+          _syncPulse(false);
+          return const SizedBox.shrink();
+        }
+
         final song =
             controller.currentSong;
 
         if (song == null) {
           _syncPulse(false);
-
           return const SizedBox.shrink();
         }
 
@@ -355,17 +373,18 @@ class _GlobalMiniPlayerState
         final playback =
             controller.playbackState;
 
-        // Single source of truth.
         final isPlaying =
             playback.isPlaying;
 
         _syncPulse(isPlaying);
 
         final durationMs =
-            playback.duration.inMilliseconds;
+            playback.duration
+                .inMilliseconds;
 
         final positionMs =
-            playback.position.inMilliseconds;
+            playback.position
+                .inMilliseconds;
 
         final progress =
         durationMs <= 0
@@ -377,8 +396,6 @@ class _GlobalMiniPlayerState
           1.0,
         );
 
-        // Never show loading while the actual
-        // audio player says it is playing.
         final isLoading =
             !isPlaying &&
                 (playback.status.name ==
@@ -391,12 +408,14 @@ class _GlobalMiniPlayerState
           EdgeInsets.symmetric(
             horizontal: 14.w,
           ),
-          child: AnimatedBuilder(
-            animation: _pulseController,
-            builder: (
-                context,
-                child,
-                ) {
+
+          child:
+          AnimatedBuilder(
+            animation:
+            _pulseController,
+
+            builder:
+                (context, child) {
               final pulse =
                   _pulseController.value;
 
@@ -408,13 +427,17 @@ class _GlobalMiniPlayerState
                 child: child,
               );
             },
-            child: _MiniPlayerSurface(
+
+            child:
+            _MiniPlayerSurface(
               song: song,
               controller: controller,
               isPlaying: isPlaying,
               isLoading: isLoading,
               progress: progress,
               colors: colors,
+              animatedArtwork:
+              widget.settings.animatedArtwork,
             ),
           ),
         );
@@ -422,7 +445,7 @@ class _GlobalMiniPlayerState
     );
   }
 }
-
+// MINI PLAYER SURFACE
 class _MiniPlayerSurface
     extends StatelessWidget {
   final Song song;
@@ -431,6 +454,7 @@ class _MiniPlayerSurface
   final bool isLoading;
   final double progress;
   final ColorScheme colors;
+  final bool animatedArtwork;
 
   const _MiniPlayerSurface({
     required this.song,
@@ -439,6 +463,7 @@ class _MiniPlayerSurface
     required this.isLoading,
     required this.progress,
     required this.colors,
+    required this.animatedArtwork,
   });
 
   @override
@@ -448,33 +473,35 @@ class _MiniPlayerSurface
 
     return ClipRRect(
       borderRadius:
-      BorderRadius.circular(
-        26.r,
-      ),
+      BorderRadius.circular(26.r),
+
       child: BackdropFilter(
         filter: ImageFilter.blur(
           sigmaX: 22,
           sigmaY: 22,
         ),
+
         child: Material(
           color: Colors.transparent,
+
           child: InkWell(
             borderRadius:
             BorderRadius.circular(
               26.r,
             ),
+
             onTap: () {
-              Navigator.of(
-                context,
-              ).push(
+              Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) =>
                   const NowPlayingScreen(),
                 ),
               );
             },
+
             child: Container(
               height: 82.h,
+
               padding:
               EdgeInsets.fromLTRB(
                 8.w,
@@ -482,9 +509,11 @@ class _MiniPlayerSurface
                 10.w,
                 8.w,
               ),
+
               decoration:
               BoxDecoration(
-                color: colors.surface
+                color:
+                colors.surface
                     .withValues(
                   alpha:
                   theme.brightness ==
@@ -492,18 +521,22 @@ class _MiniPlayerSurface
                       ? 0.42
                       : 0.50,
                 ),
+
                 borderRadius:
                 BorderRadius.circular(
                   26.r,
                 ),
+
                 border:
                 Border.all(
-                  color: colors.onSurface
+                  color:
+                  colors.onSurface
                       .withValues(
                     alpha: 0.10,
                   ),
                   width: 0.8,
                 ),
+
                 boxShadow: [
                   BoxShadow(
                     color:
@@ -521,32 +554,39 @@ class _MiniPlayerSurface
                   ),
                 ],
               ),
+
               child: Stack(
                 children: [
                   Row(
                     children: [
+                      // ARTWORK
                       AnimatedScale(
                         scale: isPlaying
                             ? 1.0
                             : 0.97,
+
                         duration:
                         const Duration(
                           milliseconds: 280,
                         ),
+
                         curve:
                         Curves.easeOutCubic,
+
                         child:
                         _MiniArtwork(
                           song: song,
                           isPlaying:
                           isPlaying,
+                          animated:
+                          animatedArtwork,
                         ),
                       ),
 
                       SizedBox(
                         width: 11.w,
                       ),
-
+                      // SONG INFORMATION
                       Expanded(
                         child: Column(
                           mainAxisAlignment:
@@ -555,16 +595,20 @@ class _MiniPlayerSurface
                           crossAxisAlignment:
                           CrossAxisAlignment
                               .start,
+
                           children: [
                             AnimatedSwitcher(
                               duration:
                               const Duration(
                                 milliseconds: 260,
                               ),
+
                               switchInCurve:
                               Curves.easeOut,
+
                               switchOutCurve:
                               Curves.easeIn,
+
                               transitionBuilder:
                                   (
                                   child,
@@ -573,6 +617,7 @@ class _MiniPlayerSurface
                                 return FadeTransition(
                                   opacity:
                                   animation,
+
                                   child:
                                   SlideTransition(
                                     position:
@@ -588,21 +633,27 @@ class _MiniPlayerSurface
                                     ).animate(
                                       animation,
                                     ),
+
                                     child:
                                     child,
                                   ),
                                 );
                               },
+
                               child: Text(
                                 song.title,
+
                                 key:
                                 ValueKey(
                                   song.id,
                                 ),
+
                                 maxLines: 1,
+
                                 overflow:
                                 TextOverflow
                                     .ellipsis,
+
                                 style:
                                 TextStyle(
                                   fontSize:
@@ -623,10 +674,13 @@ class _MiniPlayerSurface
 
                             Text(
                               song.artist,
+
                               maxLines: 1,
+
                               overflow:
                               TextOverflow
                                   .ellipsis,
+
                               style:
                               TextStyle(
                                 fontSize:
@@ -657,7 +711,7 @@ class _MiniPlayerSurface
                       SizedBox(
                         width: 8.w,
                       ),
-
+                      // PLAY / PAUSE
                       _MiniPlayButton(
                         controller:
                         controller,
@@ -668,17 +722,20 @@ class _MiniPlayerSurface
                       ),
                     ],
                   ),
-
+                  // TOP GLASS HIGHLIGHT
                   IgnorePointer(
                     child: Align(
                       alignment:
                       Alignment.topCenter,
+
                       child: Container(
                         height: 1.h,
+
                         margin:
                         EdgeInsets.symmetric(
                           horizontal: 24.w,
                         ),
+
                         decoration:
                         BoxDecoration(
                           borderRadius:
@@ -686,6 +743,7 @@ class _MiniPlayerSurface
                               .circular(
                             10.r,
                           ),
+
                           color:
                           Colors.white
                               .withValues(
@@ -708,7 +766,7 @@ class _MiniPlayerSurface
     );
   }
 }
-
+// MINI PROGRESS BAR
 class _MiniProgressBar
     extends StatelessWidget {
   final double progress;
@@ -723,11 +781,11 @@ class _MiniProgressBar
   Widget build(BuildContext context) {
     return SizedBox(
       height: 3.h,
+
       child: ClipRRect(
         borderRadius:
-        BorderRadius.circular(
-          10.r,
-        ),
+        BorderRadius.circular(10.r),
+
         child: Stack(
           children: [
             Positioned.fill(
@@ -739,22 +797,26 @@ class _MiniProgressBar
                 ),
               ),
             ),
+
             AnimatedFractionallySizedBox(
               duration:
               const Duration(
                 milliseconds: 220,
               ),
-              curve:
-              Curves.linear,
+
+              curve: Curves.linear,
+
               alignment:
               Alignment.centerLeft,
-              widthFactor:
-              progress,
+
+              widthFactor: progress,
+
               child: Container(
                 decoration:
                 BoxDecoration(
                   color:
                   colors.primary,
+
                   borderRadius:
                   BorderRadius.circular(
                     10.r,
@@ -768,53 +830,36 @@ class _MiniProgressBar
     );
   }
 }
-
+// MINI ARTWORK
 class _MiniArtwork
     extends StatelessWidget {
   final Song song;
   final bool isPlaying;
+  final bool animated;
 
   const _MiniArtwork({
     required this.song,
     required this.isPlaying,
+    required this.animated,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme =
-    Theme.of(context);
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
-    final colors =
-        theme.colorScheme;
-
-    final artwork =
-        song.thumbnailUrl;
-
-    return AnimatedContainer(
-      duration:
-      const Duration(
-        milliseconds: 320,
-      ),
-      curve:
-      Curves.easeOutCubic,
+    final content = Container(
       width: 64.w,
       height: 64.w,
       padding: EdgeInsets.all(
-        isPlaying ? 1.5.w : 0,
+        animated && isPlaying ? 1.5.w : 0,
       ),
-      decoration:
-      BoxDecoration(
-        borderRadius:
-        BorderRadius.circular(
-          20.r,
-        ),
-        boxShadow:
-        isPlaying
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: animated && isPlaying
             ? [
           BoxShadow(
-            color:
-            colors.primary
-                .withValues(
+            color: colors.primary.withValues(
               alpha: 0.16,
             ),
             blurRadius: 16,
@@ -824,35 +869,51 @@ class _MiniArtwork
             : null,
       ),
       child: ClipRRect(
-        borderRadius:
-        BorderRadius.circular(
-          18.r,
-        ),
-        child: artwork != null &&
-            artwork.isNotEmpty
-            ? Image.network(
-          artwork,
-          fit: BoxFit.cover,
-          errorBuilder:
-              (
-              _,
-              __,
-              ___,
-              ) {
-            return _ArtworkFallback(
-              colors:
-              colors,
-            );
-          },
-        )
-            : _ArtworkFallback(
-          colors: colors,
+        borderRadius: BorderRadius.circular(18.r),
+        child: _buildArtwork(
+          colors,
         ),
       ),
     );
+
+    if (!animated) {
+      return content;
+    }
+
+    return AnimatedScale(
+      scale: isPlaying ? 1.0 : 0.97,
+      duration: const Duration(
+        milliseconds: 320,
+      ),
+      curve: Curves.easeOutCubic,
+      child: content,
+    );
+  }
+
+  Widget _buildArtwork(
+      ColorScheme colors,
+      ) {
+    final artwork = song.thumbnailUrl;
+
+    if (artwork == null || artwork.isEmpty) {
+      return _ArtworkFallback(
+        colors: colors,
+      );
+    }
+
+    return Image.network(
+      artwork,
+      fit: BoxFit.cover,
+      filterQuality: FilterQuality.high,
+      errorBuilder: (_, __, ___) {
+        return _ArtworkFallback(
+          colors: colors,
+        );
+      },
+    );
   }
 }
-
+// ARTWORK FALLBACK
 class _ArtworkFallback
     extends StatelessWidget {
   final ColorScheme colors;
@@ -866,6 +927,7 @@ class _ArtworkFallback
     return Container(
       color:
       colors.surfaceContainerHighest,
+
       child: Icon(
         Hicons.musicnoteLightOutline,
         size: 26.sp,
@@ -875,7 +937,7 @@ class _ArtworkFallback
     );
   }
 }
-
+// MINI PLAY BUTTON
 class _MiniPlayButton
     extends StatelessWidget {
   final MusicController controller;
@@ -891,18 +953,20 @@ class _MiniPlayButton
   @override
   Widget build(BuildContext context) {
     final colors =
-        Theme.of(context)
-            .colorScheme;
+        Theme.of(context).colorScheme;
 
     return AnimatedContainer(
       duration:
       const Duration(
         milliseconds: 240,
       ),
+
       curve:
       Curves.easeOutCubic,
+
       width: 50.w,
       height: 50.w,
+
       decoration:
       BoxDecoration(
         color:
@@ -912,10 +976,12 @@ class _MiniPlayButton
               ? 0.12
               : 0.08,
         ),
+
         borderRadius:
         BorderRadius.circular(
           19.r,
         ),
+
         border:
         Border.all(
           color:
@@ -926,56 +992,57 @@ class _MiniPlayButton
           width: 0.7,
         ),
       ),
+
       child: Material(
         color: Colors.transparent,
+
         child: InkWell(
           borderRadius:
           BorderRadius.circular(
             19.r,
           ),
+
           onTap: isLoading
               ? null
               : () async {
             await controller
                 .togglePlayPause();
           },
+
           child: Center(
-            child:
-            AnimatedSwitcher(
+            child: AnimatedSwitcher(
               duration:
               const Duration(
                 milliseconds: 220,
               ),
+
               transitionBuilder:
-                  (
-                  child,
-                  animation,
-                  ) {
+                  (child, animation) {
                 return ScaleTransition(
                   scale: animation,
+
                   child:
                   FadeTransition(
-                    opacity:
-                    animation,
-                    child:
-                    child,
+                    opacity: animation,
+                    child: child,
                   ),
                 );
               },
+
               child: isLoading
                   ? SizedBox(
-                key:
-                const ValueKey(
+                key: const ValueKey(
                   'loading',
                 ),
+
                 width: 19.w,
                 height: 19.w,
+
                 child:
                 CircularProgressIndicator(
                   strokeWidth: 2,
                   color:
-                  colors
-                      .primary,
+                  colors.primary,
                 ),
               )
                   : Icon(
@@ -984,11 +1051,14 @@ class _MiniPlayButton
                     .pauseLightOutline
                     : Hicons
                     .playLightOutline,
+
                 key:
                 ValueKey(
                   isPlaying,
                 ),
+
                 size: 27.sp,
+
                 color:
                 colors.primary,
               ),

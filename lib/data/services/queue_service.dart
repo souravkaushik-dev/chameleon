@@ -9,21 +9,6 @@ class QueueService {
       _queue,
     );
   }
-  //
-  // Returns ONLY songs after the currently playing song.
-  //
-  // Example:
-  //
-  // A → B → C → D
-  //         ↑
-  //       CURRENT
-  //
-  // upcoming = C? No:
-  //
-  // D only.
-  //
-  // Previous songs are never included.
-  //
 
   List<Song> get upcoming {
     if (_queue.isEmpty) {

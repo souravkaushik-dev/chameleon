@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 
 import 'app/app.dart';
@@ -17,7 +18,7 @@ Future<void> main() async {
     'Music playback controls',
     androidNotificationOngoing: true,
     androidNotificationIcon:
-    'mipmap/ic_launcher',
+    'drawable/ic_notification',
     androidResumeOnClick: true,
   );
 
@@ -26,15 +27,27 @@ Future<void> main() async {
 
   await musicController.initialize();
 
-  final settings = SettingsService();
+  final settings =
+  SettingsService();
 
   await settings.initialize();
 
   runApp(
-    ChameleonApp(
-      settings: settings,
-      audioPlayerService:
-      musicController.audioPlayerService,
+    ScreenUtilPlusInit(
+      designSize:
+      const Size(390, 844),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (
+          context,
+          child,
+          ) {
+        return ChameleonApp(
+          settings: settings,
+          audioPlayerService:
+          musicController.audioPlayerService,
+        );
+      },
     ),
   );
 }

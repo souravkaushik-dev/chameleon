@@ -2,30 +2,17 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- ================================================================== -->
-    <!-- PERMISSIONS -->
-    <!-- ================================================================== -->
+    <uses-permission
+        android:name="android.permission.INTERNET" />
 
-    <!-- Keep the CPU awake during music playback. -->
     <uses-permission
         android:name="android.permission.WAKE_LOCK" />
 
-    <!-- Required for foreground background audio service. -->
     <uses-permission
         android:name="android.permission.FOREGROUND_SERVICE" />
 
-    <!-- Android 14+ media playback foreground service permission. -->
     <uses-permission
         android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-
-    <!-- ================================================================== -->
-    <!-- QUERIES -->
-    <!-- ================================================================== -->
-
-    <!--
-        Flutter ProcessTextPlugin.
-        KEEP THIS BLOCK from the original Flutter manifest.
-    -->
 
     <queries>
 
@@ -39,19 +26,11 @@
 
     </queries>
 
-    <!-- ================================================================== -->
-    <!-- APPLICATION -->
-    <!-- ================================================================== -->
-
     <application
         android:name="${applicationName}"
         android:label="Chameleon"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
-
-        <!-- ================================================================ -->
-        <!-- MAIN FLUTTER ACTIVITY -->
-        <!-- ================================================================ -->
 
         <activity
             android:name="com.ryanheise.audioservice.AudioServiceActivity"
@@ -74,10 +53,6 @@
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
 
-            <!-- ============================================================ -->
-            <!-- FLUTTER LAUNCHER -->
-            <!-- ============================================================ -->
-
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
@@ -94,10 +69,6 @@
 
         </activity>
 
-        <!-- ================================================================ -->
-        <!-- AUDIO SERVICE -->
-        <!-- ================================================================ -->
-
         <service
             android:name="com.ryanheise.audioservice.AudioService"
             android:foregroundServiceType="mediaPlayback"
@@ -113,10 +84,6 @@
 
         </service>
 
-        <!-- ================================================================ -->
-        <!-- MEDIA BUTTON RECEIVER -->
-        <!-- ================================================================ -->
-
         <receiver
             android:name="com.ryanheise.audioservice.MediaButtonReceiver"
             android:exported="true"
@@ -130,10 +97,6 @@
             </intent-filter>
 
         </receiver>
-
-        <!-- ================================================================ -->
-        <!-- FLUTTER GENERATED PLUGINS -->
-        <!-- ================================================================ -->
 
         <meta-data
             android:name="flutterEmbedding"

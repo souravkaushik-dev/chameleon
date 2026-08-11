@@ -185,22 +185,12 @@ class _SplashScreenState
     _ambientController.repeat(
       reverse: true,
     );
-
-    // -------------------------------------------------------------------------
-    // LOGO
-    // -------------------------------------------------------------------------
-
-    await _mainController.forward();
+await _mainController.forward();
 
     if (!mounted) {
       return;
     }
-
-    // -------------------------------------------------------------------------
-    // PERSONAL GREETING
-    // -------------------------------------------------------------------------
-
-    await Future<void>.delayed(
+await Future<void>.delayed(
       const Duration(
         milliseconds: 120,
       ),
@@ -215,12 +205,7 @@ class _SplashScreenState
     if (!mounted) {
       return;
     }
-
-    // -------------------------------------------------------------------------
-    // HOLD
-    // -------------------------------------------------------------------------
-
-    await Future<void>.delayed(
+await Future<void>.delayed(
       const Duration(
         milliseconds: 1300,
       ),

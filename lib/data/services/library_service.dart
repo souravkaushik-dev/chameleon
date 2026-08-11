@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import '../models/song.dart';
 import '../storage/local_storage_service.dart';
+import 'settings_service.dart';
 
 class LibraryService {
   final LocalStorageService _storage;
+  final SettingsService _settingsService;
 
   final List<Song> _favorites = [];
   final List<Song> _recentlyPlayed = [];
@@ -12,8 +16,12 @@ class LibraryService {
 
   LibraryService({
     LocalStorageService? storage,
-  }) : _storage =
-      storage ?? LocalStorageService();
+    SettingsService? settingsService,
+  })  : _storage = storage ?? LocalStorageService(),
+        _settingsService = settingsService ?? SettingsService() {
+    _settingsService.addListener(_onSettingsChanged);
+  }
+
   List<Song> get favorites {
     return List.unmodifiable(_favorites);
   }
@@ -21,12 +29,18 @@ class LibraryService {
   List<Song> get recentlyPlayed {
     return List.unmodifiable(_recentlyPlayed);
   }
-  Future<void> initialize() async {
-    final favorites =
-    await _storage.loadFavorites();
 
-    final recentlyPlayed =
-    await _storage.loadRecentlyPlayed();
+  int get recentLimit => _settingsService.recentLimit;
+
+  bool isFavorite(String songId) {
+    return _favorites.any(
+          (song) => song.id == songId,
+    );
+  }
+
+  Future<void> initialize() async {
+    final favorites = await _storage.loadFavorites();
+    final recentlyPlayed = await _storage.loadRecentlyPlayed();
 
     _favorites
       ..clear()
@@ -36,22 +50,21 @@ class LibraryService {
       ..clear()
       ..addAll(recentlyPlayed);
 
-    // Remove the old backend-test favorite once.
+    _applyRecentLimit();
     await _removeLegacyTestFavorite();
+    await _storage.saveRecentlyPlayed(
+      _recentlyPlayed,
+    );
   }
+
   Future<void> _removeLegacyTestFavorite() async {
-    final alreadyCleaned =
-    await _storage.getBool(
+    final alreadyCleaned = await _storage.getBool(
       _legacyFavoriteCleanupKey,
     );
 
     if (alreadyCleaned == true) {
       return;
     }
-
-    // Old backend test song:
-    // Daft Punk - Instant Crush
-    // YouTube ID: a5uQMwRMHcs
     _favorites.removeWhere(
           (song) => song.id == 'a5uQMwRMHcs',
     );
@@ -65,11 +78,7 @@ class LibraryService {
       true,
     );
   }
-  bool isFavorite(String songId) {
-    return _favorites.any(
-          (song) => song.id == songId,
-    );
-  }
+
   Future<void> toggleFavorite(
       Song song,
       ) async {
@@ -85,6 +94,7 @@ class LibraryService {
       _favorites,
     );
   }
+
   Future<void> addToRecentlyPlayed(
       Song song,
       ) async {
@@ -97,22 +107,51 @@ class LibraryService {
       song,
     );
 
-    if (_recentlyPlayed.length > 50) {
-      _recentlyPlayed.removeLast();
-    }
+    _applyRecentLimit();
 
     await _storage.saveRecentlyPlayed(
       _recentlyPlayed,
     );
   }
+
+  void _applyRecentLimit() {
+    final limit = _settingsService.recentLimit.clamp(
+      1,
+      500,
+    );
+
+    if (_recentlyPlayed.length <= limit) {
+      return;
+    }
+
+    _recentlyPlayed.removeRange(
+      limit,
+      _recentlyPlayed.length,
+    );
+  }
+
+  void _onSettingsChanged() {
+    _applyRecentLimit();
+    unawaited(
+      _storage.saveRecentlyPlayed(
+        _recentlyPlayed,
+      ),
+    );
+  }
+
   Future<void> clearFavorites() async {
     _favorites.clear();
 
     await _storage.clearFavorites();
   }
+
   Future<void> clearRecentlyPlayed() async {
     _recentlyPlayed.clear();
 
     await _storage.clearRecentlyPlayed();
+  }
+
+  Future<void> dispose() async {
+    _settingsService.removeListener(_onSettingsChanged);
   }
 }

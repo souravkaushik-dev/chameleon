@@ -10,10 +10,13 @@ import '../../data/models/playlist.dart';
 import '../../data/models/song.dart';
 import '../../data/services/music_controller.dart';
 import '../../data/services/music_controller_provider.dart';
+import '../../data/services/settings_service.dart';
 import '../player/now_playing_screen.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final SettingsService settings;
+
+  const SearchScreen({super.key, required this.settings});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -28,6 +31,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
   final ScrollController _scrollController = ScrollController();
 
+  SettingsService get settings => widget.settings;
+
   static const String _historyKey = 'chameleon_search_history';
 
   Timer? _debounce;
@@ -35,11 +40,13 @@ class _SearchScreenState extends State<SearchScreen> {
   List<String> _searchHistory = [];
 
   bool _hasSubmittedSearch = false;
+  int _historyLoadRequest = 0;
 
   @override
   void initState() {
     super.initState();
 
+    settings.addListener(_onSettingsChanged);
     _loadSearchHistory();
 
     _searchController.addListener(_onTextChanged);
@@ -47,6 +54,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    _historyLoadRequest++;
+    settings.removeListener(_onSettingsChanged);
     _debounce?.cancel();
 
     _searchController.removeListener(_onTextChanged);
@@ -57,12 +66,50 @@ class _SearchScreenState extends State<SearchScreen> {
 
     super.dispose();
   }
+
+  void _onSettingsChanged() {
+    if (!mounted) {
+      return;
+    }
+
+    _historyLoadRequest++;
+
+    if (!settings.saveSearches) {
+      setState(() {
+        _searchHistory = [];
+      });
+
+      unawaited(_clearStoredSearchHistory());
+      return;
+    }
+
+    _loadSearchHistory();
+  }
+
+  Future<void> _clearStoredSearchHistory() async {
+    final preferences = SharedPreferencesAsync();
+    await preferences.remove(_historyKey);
+  }
+
   Future<void> _loadSearchHistory() async {
+    final requestId = ++_historyLoadRequest;
+
+    if (!settings.saveSearches) {
+      if (mounted) {
+        setState(() {
+          _searchHistory = [];
+        });
+      }
+      return;
+    }
+
     final preferences = SharedPreferencesAsync();
 
     final stored = await preferences.getStringList(_historyKey);
 
-    if (!mounted) {
+    if (!mounted ||
+        requestId != _historyLoadRequest ||
+        !settings.saveSearches) {
       return;
     }
 
@@ -72,6 +119,10 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _saveSearchHistory(String query) async {
+    if (!settings.saveSearches) {
+      return;
+    }
+
     final cleanQuery = query.trim();
 
     if (cleanQuery.isEmpty) {
@@ -95,7 +146,13 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _removeHistoryItem(String query) async {
-    final updated = _searchHistory.where((item) => item != query).toList();
+    if (!settings.saveSearches) {
+      return;
+    }
+
+    final updated = _searchHistory
+        .where((item) => item.toLowerCase() != query.toLowerCase())
+        .toList();
 
     setState(() {
       _searchHistory = updated;
@@ -107,6 +164,10 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _clearHistory() async {
+    if (!settings.saveSearches) {
+      return;
+    }
+
     setState(() {
       _searchHistory.clear();
     });
@@ -115,6 +176,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     await preferences.remove(_historyKey);
   }
+
   void _onTextChanged() {
     if (mounted) {
       setState(() {});
@@ -148,7 +210,7 @@ class _SearchScreenState extends State<SearchScreen> {
       return;
     }
 
-    await _performSearch(query, saveHistory: true);
+    await _performSearch(query, saveHistory: settings.saveSearches);
 
     if (mounted) {
       FocusScope.of(context).unfocus();
@@ -168,7 +230,7 @@ class _SearchScreenState extends State<SearchScreen> {
       });
     }
 
-    if (saveHistory) {
+    if (saveHistory && settings.saveSearches) {
       await _saveSearchHistory(cleanQuery);
     }
 
@@ -182,7 +244,7 @@ class _SearchScreenState extends State<SearchScreen> {
       TextPosition(offset: query.length),
     );
 
-    await _performSearch(query, saveHistory: true);
+    await _performSearch(query, saveHistory: settings.saveSearches);
   }
 
   void _clearSearch() {
@@ -196,6 +258,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     _focusNode.requestFocus();
   }
+
   Future<void> _playSong(Song song) async {
     try {
       await controller.playSong(song);
@@ -215,6 +278,7 @@ class _SearchScreenState extends State<SearchScreen> {
       _showMessage('Unable to play this song.');
     }
   }
+
   Future<void> _showSongOptions(Song song, List<Song> queue) async {
     final theme = Theme.of(context);
 
@@ -344,7 +408,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         Navigator.pop(sheetContext);
 
                         await _playSong(song);
-                        },
+                      },
                     ),
                   ],
                 ),
@@ -361,6 +425,7 @@ class _SearchScreenState extends State<SearchScreen> {
       },
     );
   }
+
   Future<void> _showPlaylistPicker(Song song) async {
     final playlists = controller.playlists;
 
@@ -526,6 +591,7 @@ class _SearchScreenState extends State<SearchScreen> {
       _showMessage('Created ${created.name}');
     }
   }
+
   void _showMessage(String message) {
     if (!mounted) {
       return;
@@ -544,6 +610,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       );
   }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -652,7 +719,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         padding: EdgeInsets.fromLTRB(22.w, 65.h, 22.w, 0),
                         sliver: const SliverToBoxAdapter(child: _NoResults()),
                       ),
-                    if (!hasQuery && _searchHistory.isNotEmpty)
+                    if (!hasQuery &&
+                        settings.saveSearches &&
+                        _searchHistory.isNotEmpty)
                       SliverPadding(
                         padding: EdgeInsets.fromLTRB(22.w, 30.h, 22.w, 0),
                         sliver: SliverToBoxAdapter(
@@ -660,7 +729,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                       ),
 
-                    if (!hasQuery && _searchHistory.isNotEmpty)
+                    if (!hasQuery &&
+                        settings.saveSearches &&
+                        _searchHistory.isNotEmpty)
                       SliverPadding(
                         padding: EdgeInsets.fromLTRB(18.w, 10.h, 18.w, 0),
                         sliver: SliverList.builder(
@@ -712,12 +783,14 @@ class _SearchScreenState extends State<SearchScreen> {
                     // Space for mini player.
                     SliverToBoxAdapter(
                       child: SizedBox(
-                        height: currentSong != null ? 180.h : 110.h,
+                        height: currentSong != null && settings.miniPlayer
+                            ? 180.h
+                            : 110.h,
                       ),
                     ),
                   ],
                 ),
-                if (currentSong != null)
+                if (currentSong != null && settings.miniPlayer)
                   Positioned(
                     left: 12.w,
                     right: 12.w,
@@ -747,6 +820,7 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 }
+
 class _SearchField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
@@ -830,6 +904,7 @@ class _SearchField extends StatelessWidget {
         );
   }
 }
+
 class _ResultTile extends StatelessWidget {
   final Song song;
   final int index;
@@ -935,6 +1010,7 @@ class _ResultTile extends StatelessWidget {
         );
   }
 }
+
 class _RecentlyPlayedList extends StatelessWidget {
   final List<Song> songs;
 
@@ -1040,6 +1116,7 @@ class _RecentlyPlayedList extends StatelessWidget {
     );
   }
 }
+
 class _MiniPlayer extends StatelessWidget {
   final Song song;
   final bool isPlaying;
@@ -1183,6 +1260,7 @@ class _MiniPlayer extends StatelessWidget {
         );
   }
 }
+
 class _OptionTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -1220,6 +1298,7 @@ class _OptionTile extends StatelessWidget {
     );
   }
 }
+
 class _PlaylistOption extends StatelessWidget {
   final Playlist playlist;
   final VoidCallback onTap;
@@ -1271,6 +1350,7 @@ class _PlaylistOption extends StatelessWidget {
     );
   }
 }
+
 class _RecentSearchHeader extends StatelessWidget {
   final VoidCallback onClear;
 
@@ -1370,6 +1450,7 @@ class _HistoryTile extends StatelessWidget {
     ).animate().fadeIn(delay: (index * 35).ms, duration: 280.ms);
   }
 }
+
 class _QuickSearch extends StatelessWidget {
   final ValueChanged<String> onTap;
 
@@ -1426,6 +1507,7 @@ class _QuickSearch extends StatelessWidget {
     );
   }
 }
+
 class _SectionHeader extends StatelessWidget {
   final String title;
   final int? count;
@@ -1459,6 +1541,7 @@ class _SectionHeader extends StatelessWidget {
     );
   }
 }
+
 class _SearchingIndicator extends StatelessWidget {
   const _SearchingIndicator();
 
@@ -1487,6 +1570,7 @@ class _SearchingIndicator extends StatelessWidget {
     );
   }
 }
+
 class _NoResults extends StatelessWidget {
   const _NoResults();
 
@@ -1524,6 +1608,7 @@ class _NoResults extends StatelessWidget {
     );
   }
 }
+
 class _Artwork extends StatelessWidget {
   final String? url;
 

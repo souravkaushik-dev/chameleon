@@ -8,8 +8,6 @@ import '../models/song.dart';
 class PlaylistService {
   static const String _playlistsKey =
       'chameleon_playlists';
-
-  // Used so legacy test cleanup happens only once.
   static const String _legacyCleanupKey =
       'chameleon_legacy_test_cleanup_v1';
 
@@ -49,8 +47,6 @@ class PlaylistService {
 
         final playlist =
         _playlistFromJson(json);
-
-        // Ignore completely invalid records.
         if (playlist.id.trim().isEmpty) {
           continue;
         }
@@ -61,7 +57,6 @@ class PlaylistService {
 
         _playlists.add(playlist);
       } catch (_) {
-        // Ignore corrupted playlist records.
       }
     }
     await _removeLegacyTestPlaylists();
@@ -75,8 +70,6 @@ class PlaylistService {
     if (alreadyCleaned == true) {
       return;
     }
-
-    // These were created by the old backend test.
     _playlists.removeWhere(
           (playlist) =>
       playlist.name.trim().toLowerCase() ==
@@ -346,7 +339,6 @@ class PlaylistService {
 
           songs.add(song);
         } catch (_) {
-          // Ignore invalid song.
         }
       }
     }
@@ -379,8 +371,6 @@ class PlaylistService {
       song.duration?.inMilliseconds,
       'youtubeUrl':
       song.youtubeUrl,
-
-      // Never persist temporary stream URLs.
       'streamUrl': null,
     };
   }

@@ -1,7 +1,10 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_hicons/flutter_hicons.dart';
 import 'package:flutter_screenutil_plus/flutter_screenutil_plus.dart';
+import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
 import '../../data/models/playlist.dart';
 import '../../data/models/song.dart';
@@ -154,11 +157,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                   const _SheetHandle(),
 
                   SizedBox(height: 18.h),
-
-                  // ---------------------------------------------------------------
-                  // SONG HEADER
-                  // ---------------------------------------------------------------
-                  Row(
+Row(
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(13.r),
@@ -213,11 +212,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                   ),
 
                   SizedBox(height: 18.h),
-
-                  // ---------------------------------------------------------------
-                  // ADD TO QUEUE
-                  // ---------------------------------------------------------------
-                  _OptionTile(
+_OptionTile(
                     icon: Hicons.musicFilterBold,
                     title: 'Add to queue',
                     onTap: () {
@@ -228,11 +223,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                       _showMessage(context, 'Added to queue');
                     },
                   ),
-
-                  // ---------------------------------------------------------------
-                  // ADD TO PLAYLIST
-                  // ---------------------------------------------------------------
-                  _OptionTile(
+_OptionTile(
                     icon: Icons.playlist_add_rounded,
                     title: 'Add to playlist',
                     onTap: () {
@@ -241,11 +232,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                       _showPlaylistPicker(context, song);
                     },
                   ),
-
-                  // ---------------------------------------------------------------
-                  // LIKE
-                  // ---------------------------------------------------------------
-                  _OptionTile(
+_OptionTile(
                     icon: controller.isFavorite(song)
                         ? Hicons.heart1Bold
                         : Hicons.heart1LightOutline,
@@ -835,10 +822,7 @@ class _BottomControls extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ---------------------------------------------------------------------
-        // SONG INFO
-        // ---------------------------------------------------------------------
-        Row(
+Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
@@ -901,22 +885,14 @@ class _BottomControls extends StatelessWidget {
             ),
 
         SizedBox(height: 12.h),
-
-        // ---------------------------------------------------------------------
-        // PROGRESS
-        // ---------------------------------------------------------------------
-        _CinematicProgress(
+_CinematicProgress(
           position: position,
           duration: duration,
           onSeek: onSeek,
         ),
 
         SizedBox(height: 4.h),
-
-        // ---------------------------------------------------------------------
-        // MAIN CONTROLS
-        // ---------------------------------------------------------------------
-        Row(
+Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -986,11 +962,7 @@ class _BottomControls extends StatelessWidget {
             ),
 
         SizedBox(height: 3.h),
-
-        // ---------------------------------------------------------------------
-        // QUEUE BUTTON
-        // ---------------------------------------------------------------------
-        GestureDetector(
+GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onQueue,
           child: Padding(
@@ -1020,7 +992,7 @@ class _BottomControls extends StatelessWidget {
     );
   }
 }
-class _CinematicProgress extends StatefulWidget {
+class _CinematicProgress extends StatelessWidget {
   final Duration position;
   final Duration duration;
   final ValueChanged<Duration> onSeek;
@@ -1030,14 +1002,6 @@ class _CinematicProgress extends StatefulWidget {
     required this.duration,
     required this.onSeek,
   });
-
-  @override
-  State<_CinematicProgress> createState() =>
-      _CinematicProgressState();
-}
-
-class _CinematicProgressState extends State<_CinematicProgress> {
-  double? _dragValue;
 
   String _format(Duration value) {
     if (value.isNegative) {
@@ -1052,124 +1016,80 @@ class _CinematicProgressState extends State<_CinematicProgress> {
 
   @override
   Widget build(BuildContext context) {
-    // -------------------------------------------------------------------------
-    // IMPORTANT
-    // -------------------------------------------------------------------------
-    //
-    // Never allow position to exceed duration.
-    //
-    // This protects the UI when iOS briefly reports a position greater than
-    // the newly loaded duration.
-    //
-
     final durationMs =
-        widget.duration.inMilliseconds;
+        duration.inMilliseconds;
 
     final safeDurationMs =
-    durationMs > 0 ? durationMs : 1;
+    durationMs > 0
+        ? durationMs
+        : 1;
 
     final positionMs =
-    widget.position.inMilliseconds
-        .clamp(0, safeDurationMs);
-
-    final sliderValue =
-        _dragValue ?? positionMs.toDouble();
-
-    final safeSliderValue =
-    sliderValue.clamp(
-      0.0,
-      safeDurationMs.toDouble(),
+    position.inMilliseconds.clamp(
+      0,
+      safeDurationMs,
     );
 
-    final displayPosition = Duration(
-      milliseconds:
-      safeSliderValue.round(),
-    );
-
-    final displayDuration =
-        widget.duration;
+    final progress =
+    (positionMs / safeDurationMs)
+        .clamp(0.0, 1.0);
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            trackHeight: 3.h,
-            activeTrackColor: Colors.white,
-            inactiveTrackColor:
-            Colors.white.withValues(
-              alpha: 0.28,
-            ),
-            thumbColor: Colors.white,
-            overlayColor: Colors.white12,
-            thumbShape:
-            RoundSliderThumbShape(
-              enabledThumbRadius: 5.r,
-            ),
-            overlayShape:
-            RoundSliderOverlayShape(
-              overlayRadius: 15.r,
-            ),
-          ),
-          child: Slider(
-            value: safeSliderValue,
-            min: 0,
-            max: safeDurationMs.toDouble(),
-
-            onChangeStart: (value) {
-              setState(() {
-                _dragValue = value;
-              });
-            },
-
+        Center(
+          child: LiquidGlassSlider(
+            value: progress,
             onChanged: (value) {
-              setState(() {
-                _dragValue = value;
-              });
-            },
+              final safeValue =
+              value.clamp(0.0, 1.0);
 
-            onChangeEnd: (value) async {
-              final position = Duration(
-                milliseconds: value.round(),
+              final seekPosition =
+              Duration(
+                milliseconds:
+                (safeValue *
+                    safeDurationMs)
+                    .round(),
               );
 
-              setState(() {
-                _dragValue = null;
-              });
-
-              widget.onSeek(position);            },
+              onSeek(seekPosition);
+            },
           ),
         ),
 
-        Padding(
-          padding:
-          EdgeInsets.symmetric(
-            horizontal: 3.w,
-          ),
-          child: Row(
-            mainAxisAlignment:
-            MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                _format(displayPosition),
-                style: TextStyle(
-                  color: Colors.white.withValues(
-                    alpha: 0.48,
-                  ),
-                  fontSize: 10.sp,
-                ),
-              ),
+        SizedBox(
+          height: 1.h,
+        ),
 
-              Text(
-                _format(displayDuration),
-                style: TextStyle(
-                  color: Colors.white.withValues(
-                    alpha: 0.48,
-                  ),
-                  fontSize: 10.sp,
+        Row(
+          mainAxisAlignment:
+          MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              _format(position),
+              style: TextStyle(
+                color:
+                Colors.white.withValues(
+                  alpha: 0.48,
                 ),
+                fontSize: 10.sp,
+                fontWeight:
+                FontWeight.w500,
               ),
-            ],
-          ),
+            ),
+            Text(
+              _format(duration),
+              style: TextStyle(
+                color:
+                Colors.white.withValues(
+                  alpha: 0.48,
+                ),
+                fontSize: 10.sp,
+                fontWeight:
+                FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ],
     );
