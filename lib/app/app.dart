@@ -17,21 +17,21 @@ class ChameleonApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Chameleon',
-
-      debugShowCheckedModeBanner: false,
-
-      theme: AppTheme.lightTheme,
-
-      darkTheme: AppTheme.darkTheme,
-
-      themeMode: ThemeMode.system,
-
-      home: SplashScreen(
-        settings: settings,
-        audioPlayerService: audioPlayerService,
-      ),
+    return AnimatedBuilder(
+      animation: settings,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'Chameleon',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: settings.themeMode,
+          home: SplashScreen(
+            settings: settings,
+            audioPlayerService: audioPlayerService,
+          ),
+        );
+      },
     );
   }
 }

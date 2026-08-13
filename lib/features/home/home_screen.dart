@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -958,19 +959,30 @@ class _RecentlyPlayedCard extends StatelessWidget {
                           top: 14.w,
                           right: 14.w,
                           child: GestureDetector(
-                            onTap: () =>
-                                _showSongOptions(context, song, queue: songs),
-                            child: Container(
-                              width: 42.w,
-                              height: 42.w,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.48),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Hicons.menuHamburger1LightOutline,
-                                color: Colors.white,
-                                size: 22.sp,
+                            onTap: () => _showSongOptions(
+                              context,
+                              song,
+                              queue: songs,
+                            ),
+                            child: ClipOval(
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(
+                                  sigmaX: 12,
+                                  sigmaY: 12,
+                                ),
+                                child: Container(
+                                  width: 42.w,
+                                  height: 42.w,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: .16),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Hicons.menuHamburger1LightOutline,
+                                    color: Colors.white,
+                                    size: 21.sp,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -978,17 +990,25 @@ class _RecentlyPlayedCard extends StatelessWidget {
                         Positioned(
                           right: 14.w,
                           bottom: 14.w,
-                          child: Container(
-                            width: 50.w,
-                            height: 50.w,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.94),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Hicons.playLightOutline,
-                              color: Colors.black,
-                              size: 28.sp,
+                          child: ClipOval(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(
+                                sigmaX: 14,
+                                sigmaY: 14,
+                              ),
+                              child: Container(
+                                width: 50.w,
+                                height: 50.w,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: .20),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Hicons.playLightOutline,
+                                  color: Colors.white,
+                                  size: 27.sp,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -1108,17 +1128,25 @@ class _TrendingCard extends StatelessWidget {
                                   .instance
                                   .trendingSongs,
                             ),
-                            child: Container(
-                              width: 40.w,
-                              height: 40.w,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.48),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.more_horiz_rounded,
-                                color: Colors.white,
-                                size: 21.sp,
+                            child: ClipOval(
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(
+                                  sigmaX: 12,
+                                  sigmaY: 12,
+                                ),
+                                child: Container(
+                                  width: 40.w,
+                                  height: 40.w,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: .16),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.more_horiz_rounded,
+                                    color: Colors.white,
+                                    size: 21.sp,
+                                  ),
+                                ),
                               ),
                             ),
                           ),

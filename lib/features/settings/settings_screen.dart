@@ -19,7 +19,7 @@ class SettingsScreen extends StatefulWidget {
     required this.settings,
     required this.audioPlayerService,
     this.onOpenGithub,
-    this.version = '1.0.3+4',
+    this.version = '1.0.4+5',
   });
 
   @override
@@ -381,13 +381,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onChanged: settings.setMiniPlayer,
                 ),
                 _SettingsTile(
-                  icon: Icons.timer_outlined,
+                  icon: Hicons.timeCircle2LightOutline,
                   title: 'Sleep timer',
                   subtitle: _sleepTimerSubtitle(),
                   onTap: _showSleepTimer,
                 ),
                 _AnimatedSwitchTile(
-                  icon: Icons.play_arrow_rounded,
+                  icon: Hicons.playLightOutline,
                   title: 'Autoplay',
                   subtitle: 'Continue with the next available song',
                   value: settings.autoplay,
@@ -594,72 +594,87 @@ class _SettingsHero extends StatelessWidget {
   final Color color;
   final String version;
 
-  const _SettingsHero({required this.color, required this.version});
+  const _SettingsHero({
+    required this.color,
+    required this.version,
+  });
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: EdgeInsets.all(20.w),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [color, color.withValues(alpha: .78)],
-      ),
-      borderRadius: BorderRadius.circular(28.r),
-    ),
-    child: Row(
-      children: [
-        Container(
-          width: 58.w,
-          height: 58.w,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: .14),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Hicons.musicnoteLightOutline,
-            color: Colors.white,
-            size: 28,
-          ),
-        ),
-        SizedBox(width: 15.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Chameleon',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 19.sp,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                'Customize your listening experience.',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: .72),
-                  fontSize: 11.sp,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                'Version $version',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: .55),
-                  fontSize: 9.5.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
 
+    return Container(
+      padding: EdgeInsets.all(18.w),
+      decoration: BoxDecoration(
+        color: scheme.surface.withValues(alpha: .72),
+        borderRadius: BorderRadius.circular(24.r),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 50.w,
+            height: 50.w,
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHighest.withValues(
+                alpha: .55,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Hicons.musicnoteLightOutline,
+              color: color,
+              size: 25.sp,
+            ),
+          ),
+
+          SizedBox(width: 14.w),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Chameleon',
+                  style: TextStyle(
+                    color: scheme.onSurface,
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -.3,
+                  ),
+                ),
+
+                SizedBox(height: 3.h),
+
+                Text(
+                  'Customize your listening experience.',
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant.withValues(
+                      alpha: .78,
+                    ),
+                    fontSize: 10.5.sp,
+                  ),
+                ),
+
+                SizedBox(height: 6.h),
+
+                Text(
+                  'Version $version',
+                  style: TextStyle(
+                    color: scheme.onSurfaceVariant.withValues(
+                      alpha: .55,
+                    ),
+                    fontSize: 9.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 class _SettingsSection extends StatelessWidget {
   final String title;
   final IconData icon;
